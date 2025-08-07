@@ -7,7 +7,7 @@ const steps = [
   {
     icon: <MdOutlineTour className="text-3xl text-green-500" />,
     title: "Tour",
-    count: 4,
+    count: 3,
   },
   {
     icon: <TbBrandBooking className="text-3xl text-blue-500" />,

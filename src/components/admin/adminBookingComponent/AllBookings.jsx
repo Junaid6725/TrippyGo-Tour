@@ -26,7 +26,7 @@ const AllBookings = () => {
           </p>
         </div>
         <div className="bg-violet-700 rounded-lg shadow-xl px-6 py-3 text-white">
-          <h1 className="text-2xl font-bold mb-2">Booking Summary</h1>
+          <h1 className="text-xl font-bold mb-2">Booking Summary</h1>
 
           <p className="text-sm">
             <span className="font-semibold">Full Name:</span> Muhammad Junaid
