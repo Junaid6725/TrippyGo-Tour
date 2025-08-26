@@ -24,6 +24,8 @@ import AdminTour from "./pages/adminPages/AdminTour";
 import AdminBookings from "./pages/adminPages/AdminBookings";
 import EditTour from "./components/admin/adminTourComponent.jsx/EditTour";
 import Tour from "./pages/userPages/Tour";
+import ProtectedRoutes from "./components/protectedRoutes/protectedRoutes";
+import UserDashboard from "./pages/userPages/UserDashboard";
 
 function App() {
   const router = createBrowserRouter([
@@ -84,13 +86,21 @@ function App() {
           path: "/tours",
           element: <Tour />,
         },
+        {
+          path: "/user-dashboard",
+          element: <UserDashboard />,
+        },
 
         { path: "*", element: <NotFound /> },
       ],
     },
     {
       path: "/admin",
-      element: <AdminLayout />,
+      element: (
+        <ProtectedRoutes>
+          <AdminLayout />
+        </ProtectedRoutes>
+      ),
       children: [
         { path: "dashboard", element: <Dashboard /> },
         { path: "users", element: <Users /> },

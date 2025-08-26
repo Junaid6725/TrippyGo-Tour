@@ -4,6 +4,8 @@ import { useForm } from "react-hook-form";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import { useDispatch } from "react-redux";
+import { login } from "../../../reduxToolkit/slices/authSlices/authSlices";
 
 const LoginForm = () => {
   const {
@@ -11,6 +13,7 @@ const LoginForm = () => {
     handleSubmit,
     formState: { errors },
   } = useForm();
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const submitData = async (data) => {
     try {
@@ -20,6 +23,11 @@ const LoginForm = () => {
       );
 
       localStorage.setItem("token", response.data.token);
+      localStorage.setItem("role", response.data.user.role);
+
+      dispatch(
+        login({ token: response.data.token, role: response.data.user.role })
+      );
 
       Swal.fire({
         icon: "success",
