@@ -270,3 +270,31 @@ export const steps = [
       "Get ready for the adventure! We'll handle the rest to give you a memorable experience.",
   },
 ];
+
+export const sidebarItems = [
+  {
+    text: "Home",
+    icon: "FaHome",
+    link: "/admin-dashboard",
+  },
+  {
+    text: "User",
+    icon: "FaUser",
+    link: "/admin-dashboard/users",
+  },
+  {
+    text: "Booking",
+    icon: "TbBrandBooking",
+    link: "/admin-dashboard/booking",
+  },
+  {
+    text: "Tour",
+    icon: "MdOutlineTour",
+    link: "/admin-dashboard/tour",
+  },
+  {
+    text: "Query",
+    icon: "FaRegQuestionCircle",
+    link: "/admin-dashboard/query",
+  },
+];

@@ -6,11 +6,11 @@ const tourSchema = new Schema(
       type: String,
       required: true,
     },
-    imageUrl: {
+    imgUrl: {
       type: String,
       required: true,
     },
-    imageAlt: {
+    imgAlt: {
       type: String,
       required: true,
     },
@@ -23,15 +23,15 @@ const tourSchema = new Schema(
       required: true,
     },
     duration: {
-      type: Number,
-      required: true,
-    },
-    distanceFrom: {
       type: String,
       required: true,
     },
-    distanceKm: {
-      type: Number,
+    distance: {
+      type: String,
+      required: true,
+    },
+    location: {
+      type: String,
       required: true,
     },
     included: {
@@ -46,6 +46,10 @@ const tourSchema = new Schema(
       type: Number,
       required: true,
       min: 1,
+    },
+    hotelDetail: {
+      type: String,
+      required: true,
     },
   },
   { timestamps: true }

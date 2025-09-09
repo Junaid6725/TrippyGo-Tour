@@ -3,6 +3,7 @@ import { FaHourglassStart, FaStar } from "react-icons/fa";
 import { FaUsers } from "react-icons/fa6";
 import { IoLocation } from "react-icons/io5";
 import { MdOutlineAttachMoney } from "react-icons/md";
+import { Link } from "react-router-dom";
 
 const Booking = () => {
   return (
@@ -96,9 +97,12 @@ const Booking = () => {
                 <span>$34567934</span>
               </div>
 
-              <button className="w-full text-white bg-purple-900 hover:bg-orange-600 rounded-md text-lg py-2 transition-colors hover:cursor-pointer">
+              <Link
+                to=""
+                className="w-full text-white bg-purple-900 hover:bg-orange-600 rounded-md text-lg py-2 transition-colors hover:cursor-pointer"
+              >
                 Book Now
-              </button>
+              </Link>
             </form>
           </div>
         </div>

@@ -45,10 +45,6 @@ const RegisterForm = () => {
     <>
       <div className="flex items-center justify-center min-h-screen  mt-4">
         <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm border border-gray-200 relative overflow-hidden">
-          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-blue-500 to-purple-500" />
-          <div className="absolute top-0 left-0 h-full w-1 bg-gradient-to-b from-blue-500 to-purple-500" />
-          <div className="absolute top-0 right-0 h-full w-1 bg-gradient-to-b from-blue-500 to-purple-500" />
-          <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-gradient-to-l from-blue-500 to-purple-500" />
           <div className="flex flex-col items-center">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl flex items-center justify-center shadow-md">
               <img
@@ -205,7 +201,7 @@ const RegisterForm = () => {
 
             <input
               type="submit"
-              className="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-md text-center font-semibold hover:cursor-pointer"
+              className="mt-6 w-full  bg-purple-700 hover:bg-purple-800 text-white py-2 rounded-md text-center font-semibold hover:cursor-pointer"
             />
           </form>
         </div>

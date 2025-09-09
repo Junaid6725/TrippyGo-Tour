@@ -1,5 +1,6 @@
 import React from "react";
 import { FaLongArrowAltRight } from "react-icons/fa";
+import { Link } from "react-router-dom";
 
 const AboutCard = () => {
   return (
@@ -16,10 +17,13 @@ const AboutCard = () => {
             Join us on our journey to make a difference in the industry through
             creativity, dedication, and excellence.
           </p>
-          <span className="group flex items-center gap-1 text-lg md:text-xl text-purple-600 hover:text-purple-800 font-medium cursor-pointer transition-all duration-300 mb-2">
+          <Link
+            to="/about"
+            className="group flex items-center gap-1 text-lg md:text-xl text-purple-600 hover:text-purple-800 font-medium cursor-pointer transition-all duration-300 mb-2"
+          >
             See All
             <FaLongArrowAltRight className="transform transition-transform duration-300 group-hover:rotate-360" />
-          </span>
+          </Link>
         </div>
         <div className="w-full md:w-1/2 mb-8 md:mb-0">
           <img

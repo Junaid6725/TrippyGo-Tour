@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import StepOne from "./multiStepForm/StepOne";
 import StepTwo from "./multiStepForm/StepTwo";
 import StepThree from "./multiStepForm/StepThree";
@@ -9,45 +9,23 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
-const EditTour = () => {
+const AddTour = () => {
   const [count, setCount] = useState(1);
   const [tour, setTour] = useState(null);
   const {
     register,
     handleSubmit,
     trigger,
-    reset,
     formState: { errors },
   } = useForm();
 
   const navigate = useNavigate();
   const token = useSelector((state) => state.auth.token);
-  const { id } = useParams();
-
-  const getTourById = async () => {
-    try {
-      const response = await axios.get(
-        `http://localhost:8000/api/get-tour/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      if (response.data.singleTour) {
-        setTour(response.data.singleTour);
-        reset(response.data.singleTour);
-      }
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useEffect(() => {
-    if (id) getTourById();
-  }, [id]);
 
   const submitData = async (data) => {
-    const formData = new FormData();
     try {
+      const formData = new FormData();
+
       formData.append("title", data.title);
       formData.append("imgAlt", data.imgAlt);
       formData.append("description", data.description);
@@ -64,8 +42,8 @@ const EditTour = () => {
         formData.append("img", data.img[0]);
       }
 
-      const response = await axios.put(
-        `http://localhost:8000/api/update-tour/${id}`,
+      const createTour = await axios.post(
+        `http://localhost:8000/api/create-tour`,
         formData,
         {
           headers: {
@@ -74,15 +52,15 @@ const EditTour = () => {
           },
         }
       );
-      if (response.data.success) {
-        toast.success("Tour updated successfully!");
-      }
+      setTour(createTour.data.newTour || null);
+      toast.success("Tour created successfully!");
     } catch (error) {
-      toast.error(error);
+      console.log(error);
     }
     navigate("/admin-dashboard/tour");
   };
-  const handlecount = async () => {
+
+  const handleCount = async () => {
     let valid = false;
     if (count === 1) {
       valid = await trigger(["title", "imgUrl", "imgAlt", "description"]);
@@ -109,7 +87,7 @@ const EditTour = () => {
         className="w-full max-w-2xl bg-white p-8 rounded-2xl shadow-lg space-y-5"
       >
         <h2 className="text-2xl font-bold text-center text-gray-800">
-          Edit Tour Package
+          Add Tour Package
         </h2>
 
         {count == 1 && <StepOne register={register} errors={errors} />}
@@ -120,7 +98,7 @@ const EditTour = () => {
         {count === 3 ? (
           <button
             type="submit"
-            className="w-full bg-purple-700 hover:bg-purple-800 text-white py-3 rounded-md font-semibold transition"
+            className="w-full bg-purple-700 hover:bg-purple-800 text-white py-3 rounded-md font-semibold transition hover:cursor-pointer"
           >
             Submit
           </button>
@@ -137,8 +115,8 @@ const EditTour = () => {
             )}
             <button
               type="button"
-              onClick={handlecount}
-              className="w-full bg-purple-700 hover:bg-purple-800 text-white py-3 rounded-md font-semibold transition"
+              onClick={handleCount}
+              className="w-full bg-purple-700 hover:bg-purple-800 text-white py-3 rounded-md font-semibold transition hover:cursor-pointer"
             >
               Next
             </button>
@@ -149,4 +127,4 @@ const EditTour = () => {
   );
 };
 
-export default EditTour;
+export default AddTour;

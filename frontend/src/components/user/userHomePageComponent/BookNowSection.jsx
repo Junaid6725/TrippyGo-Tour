@@ -17,7 +17,7 @@ const BookNowSection = () => {
                 Limited time offer, don't miss the opportunity
               </p>
 
-              <button className="mt-6 inline-flex items-center bg-purple-900 hover:bg-orange-600 hover:cursor-pointer text-white font-semibold px-6 py-3 rounded-md transition gap-2 ">
+              <button className="mt-6 inline-flex items-center bg-purple-700 hover:bg-purple-800 hover:cursor-pointer text-white font-semibold px-6 py-3 rounded-md transition gap-2 ">
                 Book Now <CiBookmark className="text-2xl" />
               </button>
             </div>

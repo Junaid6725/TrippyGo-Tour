@@ -20,7 +20,7 @@ const ContactForm = () => {
         <form onSubmit={handleSubmit(submitData)}>
           <div className="mt-4 mb-4">
             <label htmlFor="name" className="text-lg text-gray-600">
-              Name
+              Full Name
             </label>
             <input
               {...register("fullName", {
@@ -38,13 +38,13 @@ const ContactForm = () => {
                   message: "Name must be at most 20 characters long",
                 },
               })}
-              id="name"
-              name="name"
               placeholder="Full Name"
-              className="w-full bg-white border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-500 text-base"
+              className="w-full bg-white border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-purple-900 focus:border-2  text-base"
             />
-            {errors.name && (
-              <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>
+            {errors.fullName && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.fullName.message}
+              </p>
             )}
           </div>
 
@@ -61,11 +61,32 @@ const ContactForm = () => {
                 },
               })}
               placeholder="Email"
-              className="w-full bg-white border border-gray-300 rounded px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-500 text-base"
+              className="w-full bg-white border border-gray-300 rounded px-3 py-2 focus:outline-none focus:border-purple-900 focus:border-2 text-base"
             />
             {errors.email && (
               <p className="text-red-500 text-sm mt-1">
                 {errors.email.message}
+              </p>
+            )}
+          </div>
+          <div className="mb-4">
+            <label htmlFor="phoneNo" className="text-lg text-gray-600">
+              Phone Number
+            </label>
+            <input
+              {...register("phoneNumber", {
+                required: "Phone Number Is Required",
+                pattern: {
+                  value: /^(03[0-9]{9}|\+923[0-9]{9})$/,
+                  message: "Please enter a valid email address",
+                },
+              })}
+              placeholder="Phone Number"
+              className="w-full bg-white border border-gray-300 rounded px-3 py-2 focus:outline-none  focus:border-purple-900 focus:border-2 text-base"
+            />
+            {errors.phoneNumber && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.phoneNumber.message}
               </p>
             )}
           </div>
@@ -75,17 +96,23 @@ const ContactForm = () => {
               Message
             </label>
             <textarea
-              id="message"
-              name="message"
+              {...register("message", {
+                required: "Message Is Required",
+              })}
               placeholder="Enter Your Query!"
               rows="4"
               className="w-full bg-white border border-gray-300 rounded px-3 py-2   focus:border-purple-900 focus:border-2 outline-0 text-base resize-none"
             />
+            {errors.message && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.message.message}
+              </p>
+            )}
           </div>
 
           <input
             type="submit"
-            className="text-white bg-purple-900 hover:bg-orange-600 rounded-md text-lg py-2 w-full transition-colors hover:cursor-pointer "
+            className="text-white bg-purple-700 hover:bg-purple-800 rounded-md text-lg py-2 w-full transition-colors hover:cursor-pointer "
           />
         </form>
       </div>

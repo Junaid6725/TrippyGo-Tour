@@ -70,7 +70,7 @@ export default function TourSearchBar() {
         </div>
 
         <div className="flex justify-center lg:justify-end">
-          <button className="bg-gradient-to-r from-blue-500 to-purple-500 hover:opacity-90 transition-all duration-300 cursor-pointer text-white px-6 py-3 rounded-full shadow-md text-base flex items-center gap-2">
+          <button className="bg-purple-700 hover:bg-purple-800 hover:opacity-90 transition-all duration-300 cursor-pointer text-white px-6 py-3 rounded-full shadow-md text-base flex items-center gap-2">
             <FaSearch />
             <span className="hidden sm:inline">Search</span>
           </button>

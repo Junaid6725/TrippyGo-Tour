@@ -15,12 +15,3 @@ export const authMiddleware = (req, res, next) => {
     return res.status(403).json({ message: "Invalid or Expired Token" });
   }
 };
-
-export const roleMiddleware = async (roles) => {
-  return (req, res, next) => {
-    if (!roles.includes(req.user.role)) {
-      return res.status(403).json({ message: "Access Denied" });
-    }
-    next();
-  };
-};
