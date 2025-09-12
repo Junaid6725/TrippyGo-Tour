@@ -71,29 +71,37 @@ export const updatedTour = async (req, res) => {
     distance,
     imgAlt,
     duration,
-    included,
-    excluded,
   } = req.body;
-  const imgUrl = req.file?.path;
+
+  const included = req.body.included ? JSON.parse(req.body.included) : [];
+  const excluded = req.body.excluded ? JSON.parse(req.body.excluded) : [];
+
+  let imgUrl;
+  if (req.file) {
+    imgUrl = req.file.path;
+  }
+
   try {
-    const updateTour = await Tour.findByIdAndUpdate(
-      id,
-      {
-        title,
-        location,
-        expenditure,
-        description,
-        groupSize,
-        hotelDetail,
-        distance,
-        imgUrl,
-        imgAlt,
-        duration,
-        included,
-        excluded,
-      },
-      { new: true }
-    );
+    const updateData = {
+      title,
+      location,
+      expenditure,
+      description,
+      groupSize,
+      hotelDetail,
+      distance,
+      imgAlt,
+      duration,
+      included,
+      excluded,
+    };
+
+    if (imgUrl) updateData.imgUrl = imgUrl;
+
+    const updateTour = await Tour.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
+
     return res.status(201).json({
       success: true,
       message: "Tour successfully updated!",

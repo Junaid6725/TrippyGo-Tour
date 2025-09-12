@@ -4,7 +4,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import StepOne from "./multiStepForm/StepOne";
 import StepTwo from "./multiStepForm/StepTwo";
 import StepThree from "./multiStepForm/StepThree";
-import { button } from "framer-motion/client";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
@@ -12,6 +11,7 @@ import { toast } from "react-toastify";
 const EditTour = () => {
   const [count, setCount] = useState(1);
   const [tour, setTour] = useState(null);
+
   const {
     register,
     handleSubmit,
@@ -24,6 +24,7 @@ const EditTour = () => {
   const token = useSelector((state) => state.auth.token);
   const { id } = useParams();
 
+  // ✅ Fetch tour by ID
   const getTourById = async () => {
     try {
       const response = await axios.get(
@@ -32,12 +33,23 @@ const EditTour = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
       if (response.data.singleTour) {
-        setTour(response.data.singleTour);
-        reset(response.data.singleTour);
+        const tourData = response.data.singleTour;
+
+        // Convert arrays into comma-separated strings for form inputs
+        if (Array.isArray(tourData.included)) {
+          tourData.included = tourData.included.join(", ");
+        }
+        if (Array.isArray(tourData.excluded)) {
+          tourData.excluded = tourData.excluded.join(", ");
+        }
+
+        setTour(tourData);
+        reset(tourData);
       }
     } catch (error) {
-      console.log(error);
+      console.log("Error fetching tour:", error);
     }
   };
 
@@ -45,6 +57,7 @@ const EditTour = () => {
     if (id) getTourById();
   }, [id]);
 
+  // ✅ Submit updated tour
   const submitData = async (data) => {
     const formData = new FormData();
     try {
@@ -56,8 +69,18 @@ const EditTour = () => {
       formData.append("distance", data.distance);
       formData.append("location", data.location);
       formData.append("groupSize", data.groupSize);
-      formData.append("included", data.included);
-      formData.append("excluded", data.excluded);
+
+      
+      const include = Array.isArray(data.included)
+        ? data.included
+        : data.included.split(",").map((item) => item.trim());
+
+      const exclude = Array.isArray(data.excluded)
+        ? data.excluded
+        : data.excluded.split(",").map((item) => item.trim());
+
+      formData.append("included", JSON.stringify(include));
+      formData.append("excluded", JSON.stringify(exclude));
       formData.append("hotelDetail", data.hotelDetail);
 
       if (data.img && data.img[0]) {
@@ -69,19 +92,22 @@ const EditTour = () => {
         formData,
         {
           headers: {
-            Authorization: `Bearer ${token} `,
+            Authorization: `Bearer ${token}`,
             "Content-Type": "multipart/form-data",
           },
         }
       );
+
       if (response.data.success) {
         toast.success("Tour updated successfully!");
+        navigate("/admin-dashboard/tour");
       }
     } catch (error) {
-      toast.error(error);
+      toast.error("Failed to update tour");
+      console.error(error);
     }
-    navigate("/admin-dashboard/tour");
   };
+
   const handlecount = async () => {
     let valid = false;
     if (count === 1) {
@@ -112,11 +138,10 @@ const EditTour = () => {
           Edit Tour Package
         </h2>
 
-        {count == 1 && <StepOne register={register} errors={errors} />}
+        {count === 1 && <StepOne register={register} errors={errors} />}
+        {count === 2 && <StepTwo register={register} errors={errors} />}
+        {count === 3 && <StepThree register={register} errors={errors} />}
 
-        {count == 2 && <StepTwo register={register} errors={errors} />}
-
-        {count == 3 && <StepThree register={register} errors={errors} />}
         {count === 3 ? (
           <button
             type="submit"

@@ -1,57 +1,80 @@
-import React from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import { FaHourglassStart, FaStar } from "react-icons/fa";
 import { FaUsers } from "react-icons/fa6";
 import { IoLocation } from "react-icons/io5";
 import { MdOutlineAttachMoney } from "react-icons/md";
-import { Link } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { Link, useParams } from "react-router-dom";
 
 const Booking = () => {
+  const [tour, setTour] = useState(null);
+  const { id } = useParams();
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
+  const token = useSelector((state) => state.auth.token);
+
+  const getTourById = async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8000/api/get-tour/${id}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      setTour(response.data.singleTour || null);
+      console.log(tour);
+    } catch (error) {
+      console.log("Error fetching tour:", error);
+    }
+  };
+
+  useEffect(() => {
+    getTourById();
+  }, [id]);
+  const handleBooking = async (data) => {
+    try {
+    } catch (error) {}
+  };
   return (
     <>
-      {/* <article
-        className="relative isolate flex flex-col overflow-hidden rounded-2xl  
-  px-4 sm:px-6 md:px-8 pb-8 pt-40 
-  w-full sm:w-[90%] md:w-[80%] lg:w-[60%]
-  mx-4 sm:mx-6 lg:mx-auto mt-12 sm:mt-16 md:mt-20 
-  h-[200px] sm:h-[350px] md:h-[400px] lg:h-[450px] xl:h-[500px]"
-      >
-        <img
-          src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a"
-          alt="University of Southern California"
-          className="absolute inset-0 h-full w-full object-cover"
-        />
-
-        <div className="absolute inset-0 bg-gradient-to-t from-gray-900 via-gray-900/40" />
-      </article> */}
       <section className="max-w-[1200px] mx-auto px-4 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
           <div className="w-full">
             <img
-              src="https://images.unsplash.com/photo-1499856871958-5b9627545d1a"
-              alt="Tour Destination"
+              src={tour?.imgUrl}
+              alt={tour?.imgAlt}
               className="rounded-2xl w-full h-[300px] sm:h-[400px] md:h-[500px] object-cover"
             />
 
             <div className="bg-white shadow mt-6 rounded-xl p-6">
-              <h2 className="text-2xl font-bold">Lahore</h2>
+              <h2 className="text-2xl font-bold">{tour?.title}</h2>
               <div className="flex gap-4 mt-2 text-gray-600">
                 <span className="flex justify-center items-center gap-1">
                   <FaStar className="text-xl text-yellow-400 " /> Not rated
                 </span>
                 <span className="flex justify-center items-center gap-1">
-                  <FaHourglassStart className="text-lg text-gray-700" /> 34 days
+                  <FaHourglassStart className="text-lg text-gray-700" />{" "}
+                  {tour?.duration}
                 </span>
               </div>
               <div className="flex gap-4 mt-2 text-sm text-gray-600">
                 <span className="flex justify-center items-center gap-1">
-                  <IoLocation className="text-xl text-gray-700" /> Pakistan
+                  <IoLocation className="text-xl text-gray-700" />{" "}
+                  {tour?.location}
                 </span>
                 <span className="flex justify-center items-center gap-1">
                   <MdOutlineAttachMoney className="text-xl text-gray-700" />
-                  34567884 / per person
+                  {tour?.expenditure} / per person
                 </span>
                 <span className="flex justify-center items-center gap-1">
-                  <FaUsers className="text-xl text-gray-700" /> 6 people
+                  <FaUsers className="text-xl text-gray-700" />
+                  {tour?.groupSize} people
                 </span>
               </div>
             </div>
@@ -63,23 +86,78 @@ const Booking = () => {
               <span className="text-gray-500 text-base">/ per person</span>
             </h3>
 
-            <form className="space-y-4 mt-6">
+            <form
+              className="space-y-4 mt-6"
+              onSubmit={handleSubmit(handleBooking)}
+            >
               <input
+                {...register("fullName", {
+                  required: "Full name is required!",
+                  pattern: {
+                    value: /^[A-Za-z]+(?:\s[A-Za-z]+)+$/,
+                    message:
+                      "Please enter your full name (first and last name)",
+                  },
+                  minLength: {
+                    value: 3,
+                    message: "Name must be at least 3 characters long",
+                  },
+                  maxLength: {
+                    value: 25,
+                    message: "Name must be at most 25 characters long",
+                  },
+                })}
                 type="text"
                 placeholder="Full Name"
                 className="w-full p-2 border rounded"
               />
+              {errors.fullName && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.fullName.message}
+                </p>
+              )}
               <input
+                {...register("phoneNumber", {
+                  required: "Phone number is required!",
+                  pattern: {
+                    value: /^(03[0-9]{9}|\+923[0-9]{9})$/,
+                    message: "Please enter a valid phone number!",
+                  },
+                })}
                 type="tel"
                 placeholder="Phone No"
                 className="w-full p-2 border rounded"
               />
-              <input type="date" className="w-full p-2 border rounded" />
+              {errors.phoneNumber && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.phoneNumber.message}
+                </p>
+              )}
               <input
+                {...register("bookingDate", {
+                  required: "Booking date is required!",
+                })}
+                type="date"
+                className="w-full p-2 border rounded"
+              />
+              {errors.bookingDate && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.bookingDate.message}
+                </p>
+              )}
+              <input
+                {...register("totalMembers", {
+                  required: "Total member is required!",
+                })}
                 type="number"
                 placeholder="Total Members"
                 className="w-full p-2 border rounded"
               />
+              {errors.totalMembers && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.totalMembers.message}
+                </p>
+              )}
 
               <div className="text-sm text-gray-600">
                 <div className="flex justify-between mt-2">
@@ -96,13 +174,14 @@ const Booking = () => {
                 <span>Total</span>
                 <span>$34567934</span>
               </div>
-
-              <Link
-                to=""
-                className="w-full text-white bg-purple-900 hover:bg-orange-600 rounded-md text-lg py-2 transition-colors hover:cursor-pointer"
-              >
-                Book Now
-              </Link>
+              <div className="flex  justify-end">
+                <button
+                  type="submit"
+                  className="w-full text-lg  transition-colors hover:cursor-pointer py-3 px-8 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white rounded-xl shadow-md transform hover:scale-105 duration-300 text-center"
+                >
+                  Book Now
+                </button>
+              </div>
             </form>
           </div>
         </div>

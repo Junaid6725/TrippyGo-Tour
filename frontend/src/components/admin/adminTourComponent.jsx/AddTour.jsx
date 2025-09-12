@@ -25,6 +25,8 @@ const AddTour = () => {
   const submitData = async (data) => {
     try {
       const formData = new FormData();
+      const include = data.included.split(",").map((item) => item.trim());
+      const exclude = data.excluded.split(",").map((item) => item.trim());
 
       formData.append("title", data.title);
       formData.append("imgAlt", data.imgAlt);
@@ -34,8 +36,8 @@ const AddTour = () => {
       formData.append("distance", data.distance);
       formData.append("location", data.location);
       formData.append("groupSize", data.groupSize);
-      formData.append("included", data.included);
-      formData.append("excluded", data.excluded);
+      formData.append("included", JSON.stringify(include));
+      formData.append("excluded", JSON.stringify(exclude));
       formData.append("hotelDetail", data.hotelDetail);
 
       if (data.img && data.img[0]) {

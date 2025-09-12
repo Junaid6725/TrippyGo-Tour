@@ -1,15 +1,33 @@
+import axios from "axios";
 import React from "react";
 import { useForm } from "react-hook-form";
+import { useNavigate } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const ContactForm = () => {
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
-  const submitData = (data) => {
-    console.log(data);
-    navigate("/contact");
+  const submitData = async (data) => {
+    try {
+      const response = await axios
+        .post("http://localhost:8000/api/contact", data)
+        .then(() => {
+          Swal.fire({
+            icon: "success",
+            title: "Query Send",
+            text: "Your Query Send to Admin!",
+            confirmButtonColor: "purple",
+            confirmButtonText: "Ok",
+          });
+        });
+      navigate("/");
+    } catch (error) {
+      console.log(error);
+    }
   };
   return (
     <>
@@ -34,8 +52,8 @@ const ContactForm = () => {
                   message: "Name must be at least 3 characters long",
                 },
                 maxLength: {
-                  value: 20,
-                  message: "Name must be at most 20 characters long",
+                  value: 25,
+                  message: "Name must be at most 25 characters long",
                 },
               })}
               placeholder="Full Name"
@@ -78,7 +96,7 @@ const ContactForm = () => {
                 required: "Phone Number Is Required",
                 pattern: {
                   value: /^(03[0-9]{9}|\+923[0-9]{9})$/,
-                  message: "Please enter a valid email address",
+                  message: "Please enter a valid phone number!",
                 },
               })}
               placeholder="Phone Number"
