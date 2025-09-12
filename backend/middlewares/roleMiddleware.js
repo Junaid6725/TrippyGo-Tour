@@ -8,6 +8,8 @@ export const adminMiddleware = (req, res, next) => {
   }
 };
 
+//this is userMiddelWare function
+
 export const userMiddleware = (req, res, next) => {
     if (req.user && req.user.role === "user") {
       next();
