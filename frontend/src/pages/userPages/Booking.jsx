@@ -6,12 +6,15 @@ import { FaUsers } from "react-icons/fa6";
 import { IoLocation } from "react-icons/io5";
 import { MdOutlineAttachMoney } from "react-icons/md";
 import { useSelector } from "react-redux";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 
 const Booking = () => {
   const [tour, setTour] = useState(null);
+  const [members, setMembers] = useState(1);
   const { id } = useParams();
+  // const serviceCharges=
+  const navigate = useNavigate();
   const {
     register,
     handleSubmit,
@@ -54,6 +57,7 @@ const Booking = () => {
             text: "You Book Tour Successfully!",
             button: "green",
           });
+          navigate("/user-dashboard");
         });
     } catch (error) {
       Swal.fire({
@@ -103,9 +107,8 @@ const Booking = () => {
           </div>
 
           <div className="bg-white shadow rounded-xl p-6">
-            <h3 className="text-3xl font-semibold text-right">
-              $34567884{" "}
-              <span className="text-gray-500 text-base">/ per person</span>
+            <h3 className="text-3xl font-semibold text-center">
+              Book Your Tour!
             </h3>
 
             <form
@@ -174,6 +177,7 @@ const Booking = () => {
                 type="number"
                 placeholder="Total Members"
                 className="w-full p-2 border rounded"
+                onChange={(e) => setMembers(Number(e.target.value))}
               />
               {errors.totalMembers && (
                 <p className="text-red-500 text-sm mt-1">
@@ -183,8 +187,10 @@ const Booking = () => {
 
               <div className="text-sm text-gray-600">
                 <div className="flex justify-between mt-2">
-                  <span>$34567884 × 1 person</span>
-                  <span>$34567884</span>
+                  <span>
+                    {tour?.expenditure} × {members} person
+                  </span>
+                  <span>{tour?.expenditure}</span>
                 </div>
                 <div className="flex justify-between mt-1">
                   <span>Service Charge</span>
@@ -194,7 +200,12 @@ const Booking = () => {
 
               <div className="flex justify-between font-bold text-lg mt-4">
                 <span>Total</span>
-                <span>$34567934</span>
+                <span>
+                  ${" "}
+                  {tour?.expenditure * members === 0
+                    ? null
+                    : tour?.expenditure * members}
+                </span>
               </div>
               <div className="flex  justify-end">
                 <button

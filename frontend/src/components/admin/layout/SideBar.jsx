@@ -3,6 +3,7 @@ import { FaHome, FaRegQuestionCircle, FaUser } from "react-icons/fa";
 import { MdOutlineTour } from "react-icons/md";
 import { TbBrandBooking } from "react-icons/tb";
 import { NavLink } from "react-router-dom";
+import { motion } from "framer-motion";
 import { sidebarItems } from "../../../data";
 
 const SideBar = () => {
@@ -15,11 +16,17 @@ const SideBar = () => {
   };
 
   return (
-    <aside className="h-auto w-20 md:w-40 pt-5 text-center bg-white border-r border-gray-200 dark:bg-gray-900 shadow">
+    <motion.aside
+      initial={{ x: -80, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
+      className="h-auto w-20 md:w-40 pt-5 text-center bg-white border-r border-gray-200 dark:bg-gray-900 shadow"
+    >
       <div className="h-full flex flex-col items-center py-4">
         <nav className="flex-1 w-full px-2 space-y-2">
           {sidebarItems.map((item, index) => {
             const IconComponent = icons[item.icon];
+
             return (
               <NavLink
                 key={index}
@@ -35,15 +42,29 @@ const SideBar = () => {
                 }
               >
                 {IconComponent && (
-                  <IconComponent className="text-xl  md:text-2xl" />
+                  <motion.div
+                    whileHover={{ scale: 1.2, rotate: 10 }}
+                    whileTap={{ scale: 0.9 }}
+                    transition={{ type: "spring", stiffness: 300 }}
+                  >
+                    <IconComponent className="text-xl md:text-2xl" />
+                  </motion.div>
                 )}
-                <span className="hidden md:inline text-base">{item.text}</span>
+                <motion.span
+                  className="hidden md:inline text-base"
+                  whileHover={{ x: 5 }}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ type: "spring", stiffness: 200 }}
+                >
+                  {item.text}
+                </motion.span>
               </NavLink>
             );
           })}
         </nav>
       </div>
-    </aside>
+    </motion.aside>
   );
 };
 
