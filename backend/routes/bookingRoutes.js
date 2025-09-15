@@ -1,7 +1,13 @@
 import express from "express";
-import { createBooking } from "./../controllers/bookingController.js";
+import {
+  createBooking,
+  getBookings,
+} from "./../controllers/bookingController.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
-import { userMiddleware } from "../middlewares/roleMiddleware.js";
+import {
+  adminMiddleware,
+  userMiddleware,
+} from "../middlewares/roleMiddleware.js";
 
 const router = express.Router();
 
@@ -11,5 +17,7 @@ router.post(
   userMiddleware,
   createBooking
 );
+
+router.get("/get-bookings", authMiddleware, adminMiddleware, getBookings);
 
 export default router;

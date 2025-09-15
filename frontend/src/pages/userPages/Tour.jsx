@@ -5,7 +5,7 @@ import axios from "axios";
 
 const Tour = () => {
   const { id } = useParams();
-  const [singleTour, setSingleTour] = useState(null); 
+  const [singleTour, setSingleTour] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchTour = async () => {
@@ -13,7 +13,7 @@ const Tour = () => {
       const response = await axios.get(
         `http://localhost:8000/api/get-tour/${id}`
       );
-      console.log("Tour API Response:", response.data);
+
       setSingleTour(response.data.singleTour);
     } catch (error) {
       console.error("Failed to fetch tour", error);

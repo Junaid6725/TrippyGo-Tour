@@ -292,9 +292,4 @@ export const sidebarItems = [
     icon: "MdOutlineTour",
     link: "/admin-dashboard/tour",
   },
-  {
-    text: "Query",
-    icon: "FaRegQuestionCircle",
-    link: "/admin-dashboard/query",
-  },
 ];
