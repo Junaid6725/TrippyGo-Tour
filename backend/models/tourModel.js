@@ -1,6 +1,6 @@
 import mongoose, { Schema, Types } from "mongoose";
 
-const tourSchema = new Schema(
+const tourSchema = new mongoose.Schema(
   {
     title: {
       type: String,

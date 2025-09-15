@@ -7,6 +7,7 @@ import { IoLocation } from "react-icons/io5";
 import { MdOutlineAttachMoney } from "react-icons/md";
 import { useSelector } from "react-redux";
 import { Link, useParams } from "react-router-dom";
+import Swal from "sweetalert2";
 
 const Booking = () => {
   const [tour, setTour] = useState(null);
@@ -39,7 +40,28 @@ const Booking = () => {
   }, [id]);
   const handleBooking = async (data) => {
     try {
-    } catch (error) {}
+      const response = await axios
+        .post(`http://localhost:8000/api/booking-tour/${id}`, data, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+        .then(() => {
+          Swal.fire({
+            icon: "success",
+            iconColor: "green",
+            title: "Booking Tour",
+            text: "You Book Tour Successfully!",
+            button: "green",
+          });
+        });
+    } catch (error) {
+      Swal.fire({
+        icon: "error",
+        text: error.response?.data?.message || "Something Went Wrong",
+        button: "red",
+      });
+    }
   };
   return (
     <>
