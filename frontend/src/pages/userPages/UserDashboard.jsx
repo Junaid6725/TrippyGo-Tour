@@ -8,7 +8,7 @@ const menus = [
   { name: "Profile", path: "/profile", icon: <FaUser className="text-2xl" /> },
   {
     name: "Booking",
-    path: "/user-booking",
+    path: "user-booking",
     icon: <FaInfoCircle className="text-2xl" />,
   },
 ];
@@ -30,6 +30,7 @@ const UserDashboard = () => {
               transition={{ type: "spring", stiffness: 300 }}
             >
               <NavLink
+                end
                 to={item.path}
                 className={({ isActive }) =>
                   `w-full p-3 flex justify-center md:justify-start items-center rounded-lg gap-3 font-medium transition-all duration-300 ${

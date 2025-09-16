@@ -1,6 +1,6 @@
 import "./App.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import UserLayout from "./components/user/layout/UserLayout";
+import BasicLayout from "./components/user/layout/BasicLayout";
 import Home from "./pages/userPages/Home";
 import Login from "./pages/userPages/Login";
 import Register from "./pages/userPages/Register";
@@ -29,6 +29,7 @@ import AddTour from "./components/admin/adminTourComponent.jsx/AddTour";
 import AllTours from "./pages/userPages/AllTours";
 import ScrollToTop from "./components/common/ScrollToTop";
 import UserBooking from "./components/user/bookingPageComponent/UserBooking";
+import UserLayout from "./components/user/layout/UserLayout";
 
 function App() {
   const router = createBrowserRouter([
@@ -37,7 +38,7 @@ function App() {
       element: (
         <>
           <ScrollToTop />
-          <UserLayout />
+          <BasicLayout />
         </>
       ),
 
@@ -57,13 +58,19 @@ function App() {
         { path: "packing-list", element: <WhatToPack /> },
         { path: "tours", element: <AllTours /> },
         { path: "tours/:id", element: <Tour /> },
+        { path: "booking/:id", element: <Booking /> },
 
         {
           element: <ProtectedRoutes role="user" />,
           children: [
-            { path: "booking/:id", element: <Booking /> },
-            { path: "user-dashboard", element: <UserDashboard /> },
-            { path: "user-booking", element: <UserBooking /> },
+            {
+              path: "user-dashboard",
+              element: <UserLayout />,
+              children: [
+                // { index: true, element: <UserDashboard /> },
+                { path: "user-booking", element: <UserBooking /> },
+              ],
+            },
           ],
         },
 
