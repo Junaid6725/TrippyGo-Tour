@@ -82,3 +82,18 @@ export const getBookings = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server Error" });
   }
 };
+
+export const getUserBookings = async (req, res) => {
+  try {
+    const user = req.user?.id;
+    const booking = await Booking.find({ userId: user }).populate("tourId");
+    if (!booking) {
+      return res
+        .status(404)
+        .json({ success: false, message: "NO Booking Found!" });
+    }
+    return res.status(200).json({ success: true, booking });
+  } catch (error) {
+    return res.status(500).json({ message: "Server Error" });
+  }
+};

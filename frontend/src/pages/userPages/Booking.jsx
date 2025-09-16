@@ -32,7 +32,6 @@ const Booking = () => {
       );
 
       setTour(response.data.singleTour || null);
-      console.log(tour);
     } catch (error) {
       console.log("Error fetching tour:", error);
     }

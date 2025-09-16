@@ -1,45 +1,42 @@
-import React from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 
 const UserBooking = () => {
-  // Static bookings data
-  const bookings = [
-    {
-      id: 1,
-      fullName: "Ali Khan",
-      email: "ali.khan@example.com",
-      phoneNumber: "+923001234567",
-      bookingDate: "2025-09-15",
-      status: "Confirmed",
-      totalMembers: 4,
-    },
-    {
-      id: 2,
-      fullName: "Sara Ahmed",
-      email: "sara.ahmed@example.com",
-      phoneNumber: "+923004567890",
-      bookingDate: "2025-09-20",
-      status: "Pending",
-      totalMembers: 2,
-    },
-    {
-      id: 3,
-      fullName: "Hamza Ali",
-      email: "hamza.ali@example.com",
-      phoneNumber: "+923008765432",
-      bookingDate: "2025-10-01",
-      status: "Cancelled",
-      totalMembers: 3,
-    },
-  ];
+  const [userBookings, setUserBookings] = useState([]);
+
+  const token = useSelector((state) => state.auth.token);
+  const fetchUserBookings = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:8000/api/user-bookings",
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      setUserBookings(response.data.booking);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    fetchUserBookings();
+  }, []);
+
+
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6 text-gray-800">All Bookings</h1>
+      <h1 className="text-2xl text-center font-bold mb-6 text-gray-800">
+        All Bookings
+      </h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {bookings.map((item) => (
+        {userBookings.map((item) => (
           <div
-            key={item.id}
+            key={item._id}
             className="bg-white rounded-xl shadow-md p-5 hover:shadow-lg transition-all duration-300"
           >
             <h2 className="text-lg font-semibold text-purple-700 mb-2">
