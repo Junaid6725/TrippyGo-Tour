@@ -18,7 +18,6 @@ import NotFound from "./pages/userPages/NotFound";
 import AdminLayout from "./components/admin/layout/AdminLayout";
 import Dashboard from "./components/admin/adminHomeComponent/Dashboard";
 import Users from "./pages/adminPages/Users";
-import Query from "./pages/adminPages/Query";
 import AdminTour from "./pages/adminPages/AdminTour";
 import AdminBookings from "./pages/adminPages/AdminBookings";
 import EditTour from "./components/admin/adminTourComponent.jsx/EditTour";
@@ -92,7 +91,6 @@ function App() {
         { index: true, element: <Dashboard /> },
         { path: "dashboard", element: <Dashboard /> },
         { path: "users", element: <Users /> },
-        { path: "query", element: <Query /> },
         { path: "tour", element: <AdminTour /> },
         { path: "booking", element: <AdminBookings /> },
         { path: "edit-tour/:id", element: <EditTour /> },
