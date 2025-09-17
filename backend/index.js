@@ -6,6 +6,7 @@ import adminRoutes from "./routes/adminRoutes.js";
 import tourRoutes from "./routes/tourRoutes.js";
 import contactRoutes from "./routes/contactRoutes.js";
 import bookingRoutes from "./routes/bookingRoutes.js";
+import userRoutes from "./routes/userRoutes.js";
 
 import cors from "cors";
 
@@ -29,6 +30,7 @@ app.use("/api", adminRoutes);
 app.use("/api", tourRoutes);
 app.use("/api", contactRoutes);
 app.use("/api", bookingRoutes);
+app.use("/api", userRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
