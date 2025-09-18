@@ -129,7 +129,7 @@ const AllTours = () => {
           </div>
           <Link
             to="/admin-dashboard/add-tour"
-            className="flex items-center gap-2 bg-blue-600 text-white px-3 py-2 sm:px-4 sm:py-3 rounded-lg shadow-md transition-all transform hover:-translate-y-0.5 text-sm sm:text-base"
+            className="flex items-center gap-2 bg-blue-500 text-white px-3 py-2 sm:px-4 sm:py-3 rounded-lg shadow-md transition-all transform hover:-translate-y-0.5 text-sm sm:text-base"
           >
             <FaPlusCircle className="text-sm sm:text-base" />
             <span className="hidden xs:inline">Add New Tour</span>
