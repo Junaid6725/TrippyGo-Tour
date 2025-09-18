@@ -5,7 +5,11 @@ import { motion } from "framer-motion";
 
 const menus = [
   { name: "Home", path: "", icon: <FaHome className="text-2xl" /> },
-  { name: "Profile", path: "/profile", icon: <FaUser className="text-2xl" /> },
+  {
+    name: "Profile",
+    path: "user-profile",
+    icon: <FaUser className="text-2xl" />,
+  },
   {
     name: "Booking",
     path: "user-booking",

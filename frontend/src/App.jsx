@@ -29,6 +29,7 @@ import AllTours from "./pages/userPages/AllTours";
 import ScrollToTop from "./components/common/ScrollToTop";
 import UserBooking from "./components/user/bookingPageComponent/UserBooking";
 import UserLayout from "./components/user/layout/UserLayout";
+import UserProfile from "./pages/userPages/UserProfile";
 
 function App() {
   const router = createBrowserRouter([
@@ -66,7 +67,7 @@ function App() {
               path: "user-dashboard",
               element: <UserLayout />,
               children: [
-                // { index: true, element: <UserDashboard /> },
+                { path: "user-profile", element: <UserProfile /> },
                 { path: "user-booking", element: <UserBooking /> },
               ],
             },
