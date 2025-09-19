@@ -26,11 +26,13 @@ const StepOne = ({ register, errors }) => {
           type="file"
           accept="image/*"
           placeholder="Enter image URL"
-          {...register("img", { required: "Image URL is required" })}
+          {...register("tourImage", { required: "Image URL is required" })}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
         />
-        {errors.img && (
-          <p className="text-red-500 text-sm mt-1">{errors.img.message}</p>
+        {errors.tourImage && (
+          <p className="text-red-500 text-sm mt-1">
+            {errors.tourImage.message}
+          </p>
         )}
       </div>
 

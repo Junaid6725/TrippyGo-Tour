@@ -70,7 +70,6 @@ const EditTour = () => {
       formData.append("location", data.location);
       formData.append("groupSize", data.groupSize);
 
-      
       const include = Array.isArray(data.included)
         ? data.included
         : data.included.split(",").map((item) => item.trim());
@@ -83,8 +82,8 @@ const EditTour = () => {
       formData.append("excluded", JSON.stringify(exclude));
       formData.append("hotelDetail", data.hotelDetail);
 
-      if (data.img && data.img[0]) {
-        formData.append("img", data.img[0]);
+      if (data.tourImage && data.tourImage[0]) {
+        formData.append("tourImage", data.tourImage[0]);
       }
 
       const response = await axios.put(

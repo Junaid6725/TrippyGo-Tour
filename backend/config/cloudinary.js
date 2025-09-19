@@ -12,9 +12,25 @@ cloudinary.config({
 
 const storage = new CloudinaryStorage({
   cloudinary,
-  params: {
-    folder: "uploads",
-    allowed_formats: ["jpg", "png", "jpeg"],
+  params: async (req, file) => {
+    let folderName = "uploads"; 
+    let formats = ["jpg", "jpeg", "png"];
+
+    if (file.fieldname === "profileImage") {
+      folderName = "profileImg";
+      formats = ["png", "jpg"];
+    } else if (file.fieldname === "tourImage") {
+      folderName = "tourImages";
+      formats = ["jpg", "jpeg", "png", "webp"];
+    } else if (file.fieldname === "banner") {
+      folderName = "banners";
+      formats = ["jpg", "png"];
+    }
+
+    return {
+      folder: folderName,
+      allowed_formats: formats,
+    };
   },
 });
 

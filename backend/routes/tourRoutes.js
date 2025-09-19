@@ -16,14 +16,14 @@ router.post(
   "/create-tour",
   authMiddleware,
   adminMiddleware,
-  upload.single("img"),
+  upload.single("tourImage"),
   createTour
 );
 router.put(
   "/update-tour/:id",
   authMiddleware,
   adminMiddleware,
-  upload.single("img"),
+  upload.single("tourImage"),
   updatedTour
 );
 router.delete("/delete-tour/:id", authMiddleware, adminMiddleware, deleteTour);

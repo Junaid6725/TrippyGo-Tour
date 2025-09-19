@@ -40,8 +40,8 @@ const AddTour = () => {
       formData.append("excluded", JSON.stringify(exclude));
       formData.append("hotelDetail", data.hotelDetail);
 
-      if (data.img && data.img[0]) {
-        formData.append("img", data.img[0]);
+      if (data.tourImage && data.tourImage[0]) {
+        formData.append("tourImage", data.tourImage[0]);
       }
 
       const createTour = await axios.post(
@@ -56,10 +56,10 @@ const AddTour = () => {
       );
       setTour(createTour.data.newTour || null);
       toast.success("Tour created successfully!");
+      navigate("/admin-dashboard/tour");
     } catch (error) {
       console.log(error);
     }
-    navigate("/admin-dashboard/tour");
   };
 
   const handleCount = async () => {
