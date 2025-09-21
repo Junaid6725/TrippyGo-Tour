@@ -1,73 +1,173 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { FiMapPin, FiCalendar } from "react-icons/fi";
 import { useForm } from "react-hook-form";
-import { FiMapPin, FiCalendar, FiMail, FiPhone } from "react-icons/fi";
 import { useSelector } from "react-redux";
 
 const UserProfile = () => {
+  const token = useSelector((state) => state.auth.token);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const token = useSelector((state) => state.auth.token);
 
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm();
+  const { register, handleSubmit, reset } = useForm();
 
+  // ✅ Fetch Profile from backend
   const fetchProfile = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/get-profile/", {
+      const res = await axios.get("http://localhost:8000/api/get-profile", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (res.data.message === "Profile not created") {
+      if (!res.data.success || !res.data.profile) {
         setProfile(null);
       } else {
-        setProfile(res.data);
-        reset({
-          about: res.data.about || "",
-          location: res.data.location || "",
-        });
+        const prof = res.data.profile;
+
+        // Agar profile incomplete hai
+        if (!prof.profileImage || !prof.about || !prof.location) {
+          setProfile(null);
+        } else {
+          setProfile(prof);
+          reset({
+            about: prof.about || "",
+            location: prof.location || "",
+          });
+        }
       }
     } catch (error) {
       console.error(error);
+      setProfile(null);
     }
     setLoading(false);
   };
 
-  useEffect(() => {
-    fetchProfile();
-  }, [reset]);
-
+  // ✅ Handle Profile Create/Update
   const onSubmit = async (data) => {
-    const form = new FormData();
-    form.append("about", data.about);
-    form.append("location", data.location);
-    if (data.profileImage && data.profileImage[0]) {
-      form.append("profileImage", data.profileImage[0]);
-    }
-
     try {
-      const res = await axios.post("/api/profile", form, {
-        headers: { "Content-Type": "multipart/form-data" },
-        withCredentials: true,
-      });
-      setProfile(res.data);
-      setShowForm(false);
+      let imageUrl = profile?.profileImage || "";
+
+      // Agar naya image upload hua hai
+      if (data.profileImage && data.profileImage[0]) {
+        const formData = new FormData();
+        formData.append("file", data.profileImage[0]);
+        formData.append("upload_preset", "your_preset_name"); // apna Cloudinary preset
+        formData.append("cloud_name", "your_cloud_name");
+
+        const uploadRes = await axios.post(
+          "https://api.cloudinary.com/v1_1/your_cloud_name/image/upload",
+          formData
+        );
+        imageUrl = uploadRes.data.secure_url;
+      }
+
+      const res = await axios.post(
+        "http://localhost:8000/api/create-profile",
+        {
+          about: data.about,
+          location: data.location,
+          profileImage: imageUrl,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      if (res.data.success) {
+        alert("Profile saved successfully!");
+        setShowForm(false);
+        fetchProfile();
+      }
     } catch (error) {
       console.error(error);
+      alert("Error saving profile");
     }
   };
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
 
   if (loading) return <p>Loading...</p>;
 
   return (
-    <div className="max-w-4xl mx-auto mt-8">
-      {profile && !showForm ? (
+    <div className="container mx-auto p-6">
+      {/* Profile Not Found OR Incomplete */}
+      {!profile && !showForm && (
+        <div className="bg-white rounded-xl shadow-lg p-8 text-center">
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">
+            Profile Not Found
+          </h1>
+          <p className="text-gray-600 mb-6">
+            You haven’t completed your profile yet. Please create your profile.
+          </p>
+          <button
+            onClick={() => setShowForm(true)}
+            className="bg-blue-600 text-white px-6 py-2 rounded"
+          >
+            Create Profile
+          </button>
+        </div>
+      )}
+
+      {/* Profile Create / Update Form */}
+      {showForm && (
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="bg-white rounded-xl shadow-lg p-8 max-w-lg mx-auto"
+        >
+          <h2 className="text-xl font-bold mb-4">
+            {profile ? "Update Profile" : "Create Profile"}
+          </h2>
+
+          <div className="mb-4">
+            <label className="block text-gray-700">About</label>
+            <textarea
+              {...register("about", { required: true })}
+              className="w-full border rounded px-3 py-2 mt-1"
+              rows="3"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-gray-700">Location</label>
+            <input
+              {...register("location", { required: true })}
+              className="w-full border rounded px-3 py-2 mt-1"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-gray-700">Profile Image</label>
+            <input
+              type="file"
+              {...register("profileImage")}
+              className="w-full border rounded px-3 py-2 mt-1"
+            />
+          </div>
+
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              className="bg-blue-600 text-white px-6 py-2 rounded"
+            >
+              {profile ? "Update" : "Save"}
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              className="bg-gray-500 text-white px-6 py-2 rounded"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+
+      {/* Profile Exists & Complete */}
+      {profile && !showForm && (
         <div className="flex flex-col md:flex-row bg-white rounded-xl shadow-lg overflow-hidden">
+          {/* Left Sidebar */}
           <div className="md:w-2/5 flex flex-col items-center justify-center p-8 bg-blue-500">
             <img
               src={profile.profileImage}
@@ -94,79 +194,19 @@ const UserProfile = () => {
             </div>
           </div>
 
+          {/* Right Content */}
           <div className="md:w-3/5 p-8">
             <h3 className="text-2xl font-bold text-gray-800 mb-4">About Me</h3>
             <p className="text-gray-600 leading-relaxed">{profile.about}</p>
+            <button
+              onClick={() => setShowForm(true)}
+              className="mt-6 bg-gray-700 text-white px-4 py-2 rounded"
+            >
+              Edit Profile
+            </button>
           </div>
         </div>
-      ) : null}
-
-      {!profile && !showForm && (
-        <div className="text-center">
-          <button
-            onClick={() => setShowForm(true)}
-            className="bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold"
-          >
-            Create Profile
-          </button>
-        </div>
       )}
-
-      {(!profile && showForm) || (profile && showForm) ? (
-        <div className="bg-white shadow-md rounded p-6 mt-6">
-          <h2 className="text-xl font-bold mb-4">
-            {profile ? "Update Profile" : "Create Your Profile"}
-          </h2>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <input
-              type="file"
-              {...register("profileImage")}
-              className="block w-full"
-            />
-
-            <input
-              type="text"
-              placeholder="Your Location"
-              {...register("location", { required: "Location is required" })}
-              className="border w-full p-2"
-            />
-            {errors.location && (
-              <p className="text-red-500 text-sm">{errors.location.message}</p>
-            )}
-
-            <textarea
-              placeholder="About You"
-              {...register("about", {
-                required: "About section is required",
-                minLength: {
-                  value: 10,
-                  message: "About must be at least 10 characters",
-                },
-              })}
-              className="border w-full p-2"
-            />
-            {errors.about && (
-              <p className="text-red-500 text-sm">{errors.about.message}</p>
-            )}
-
-            <div className="flex gap-4">
-              <button
-                type="submit"
-                className="bg-blue-600 text-white px-6 py-2 rounded"
-              >
-                {profile ? "Update" : "Save"}
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowForm(false)}
-                className="bg-gray-400 text-white px-6 py-2 rounded"
-              >
-                Cancel
-              </button>
-            </div>
-          </form>
-        </div>
-      ) : null}
     </div>
   );
 };

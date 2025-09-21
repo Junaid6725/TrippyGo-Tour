@@ -1,4 +1,3 @@
-// src/components/auth/LoginForm.jsx
 import axios from "axios";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -7,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { useDispatch } from "react-redux";
 import { login } from "./../../../reduxToolkit/slices/authSlices/authSlices.js";
+import { motion } from "framer-motion";
 
 const LoginForm = () => {
   const {
@@ -25,16 +25,16 @@ const LoginForm = () => {
         data
       );
 
-    
       dispatch(
         login({ token: response.data.token, role: response.data.user.role })
       );
 
       Swal.fire({
         icon: "success",
-        iconColor: "#4F46E5",
+        iconColor: "#2563EB", // blue
         title: "Login Successful",
         text: "Welcome back!",
+        confirmButtonColor: "#2563EB",
       }).then(() => {
         if (response.data.user.role === "admin") {
           navigate("/admin-dashboard");
@@ -47,6 +47,7 @@ const LoginForm = () => {
         icon: "error",
         title: "Login Failed",
         text: error.response?.data?.message || error.message,
+        confirmButtonColor: "#DC2626",
       }).then(() => {
         navigate("/login");
       });
@@ -54,23 +55,30 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen mt-4">
-      <div className="bg-white p-8 rounded-2xl shadow-lg w-full max-w-sm border border-gray-200 relative overflow-hidden">
-        {/* Logo */}
-        <div className="flex flex-col items-center">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl flex items-center justify-center shadow-md">
+    <div className="flex items-center justify-center min-h-screen px-4">
+      <motion.div
+        initial={{ opacity: 0, y: 40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8, ease: "easeOut" }}
+        className="bg-white p-8 rounded-2xl shadow-xl w-full max-w-sm border border-blue-100 relative overflow-hidden"
+      >
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+          className="flex flex-col items-center"
+        >
+          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-blue-700 rounded-xl flex items-center justify-center shadow-md">
             <img
               src="/logo1.jpg"
               alt="Logo"
               className="w-8 h-8 object-cover rounded"
             />
           </div>
-          <h2 className="text-2xl font-semibold mt-2">Login</h2>
-        </div>
+          <h2 className="text-2xl font-bold mt-3 text-gray-800">Login</h2>
+        </motion.div>
 
-        {/* Form */}
         <form className="mt-6" onSubmit={handleSubmit(submitData)}>
-          {/* Email */}
           <label className="block text-sm font-medium text-gray-700">
             Email
           </label>
@@ -83,13 +91,12 @@ const LoginForm = () => {
               },
             })}
             placeholder="Email address"
-            className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+            className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           {errors.email && (
             <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>
           )}
 
-          {/* Password */}
           <label className="block text-sm font-medium text-gray-700 mt-4">
             Password
           </label>
@@ -108,7 +115,7 @@ const LoginForm = () => {
                 },
               })}
               placeholder="Password"
-              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none"
+              className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             {errors.password && (
               <p className="text-red-500 text-sm mt-1">
@@ -116,20 +123,22 @@ const LoginForm = () => {
               </p>
             )}
             <span
-              className="absolute right-3 top-3 cursor-pointer text-gray-500 text-2xl"
+              className="absolute right-3 top-3 cursor-pointer text-gray-500 text-lg"
               onClick={() => setShowPassword((prev) => !prev)}
             >
               {showPassword ? <FaEyeSlash /> : <FaEye />}
             </span>
           </div>
 
-          <input
+          <motion.input
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             type="submit"
-            className="mt-6 w-full bg-purple-700 hover:bg-purple-800 text-white py-2 rounded-md text-center font-semibold cursor-pointer"
+            className="mt-6 w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white py-2 rounded-md font-semibold cursor-pointer shadow-md hover:shadow-lg transition"
             value="Login"
           />
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 };

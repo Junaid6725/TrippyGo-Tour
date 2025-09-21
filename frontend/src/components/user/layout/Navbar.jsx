@@ -5,6 +5,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../../../reduxToolkit/slices/authSlices/authSlices";
 import Swal from "sweetalert2";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,36 +28,54 @@ export default function Navbar() {
       }
     });
   };
-  return (
-    <nav className="bg-white border-b border-gray-200 dark:bg-gray-900 shadow w-full ">
-      <div className="max-w-screen-xl mx-auto px-4 py-3 flex items-center justify-between">
-        <Link to="/" className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-400 to-purple-500 rounded-xl flex items-center justify-center shadow-md">
-            <img
-              src="/logo1.jpg"
-              alt="Logo"
-              className="w-8 h-8 object-cover rounded"
-            />
-          </div>
-          <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            TrippyGo
-          </span>
-        </Link>
 
-        <div className="hidden lg:flex space-x-6">
+  return (
+    <nav className="bg-white border-b border-gray-200 shadow w-full sticky top-0 z-50">
+      <div className="max-w-screen-xl mx-auto px-4 py-3 flex items-center justify-between">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <Link to="/" className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-sky-500 rounded-xl flex items-center justify-center shadow-md">
+              <img
+                src="/logo1.jpg"
+                alt="Logo"
+                className="w-8 h-8 object-cover rounded"
+              />
+            </div>
+            <span className="text-2xl font-bold text-sky-600">TrippyGo</span>
+          </Link>
+        </motion.div>
+
+        <div className="hidden lg:flex space-x-4 relative">
           {navItems.map((item, i) => (
-            <NavLink
-              key={i}
-              to={item.path}
-              className={({ isActive }) =>
-                `text-sm font-medium transition-colors duration-200 ${
-                  isActive
-                    ? "text-purple-700 dark:text-white"
-                    : "text-gray-700 hover:text-purple-700 dark:text-gray-300 dark:hover:text-white"
-                }`
-              }
-            >
-              {item.navlink}
+            <NavLink key={i} to={item.path} end>
+              {({ isActive }) => (
+                <div className="relative px-3 py-2 rounded-md text-sm font-medium">
+                  <span
+                    className={`transition-colors duration-200 ${
+                      isActive
+                        ? "text-sky-700 font-semibold"
+                        : "text-gray-700 hover:text-sky-600"
+                    }`}
+                  >
+                    {item.navlink}
+                  </span>
+                  {isActive && (
+                    <motion.div
+                      layoutId="underline"
+                      className="absolute bottom-0 left-0 right-0 h-1 bg-sky-500 rounded"
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 30,
+                      }}
+                    />
+                  )}
+                </div>
+              )}
             </NavLink>
           ))}
         </div>
@@ -65,95 +84,103 @@ export default function Navbar() {
           <div className="hidden lg:flex items-center space-x-2">
             {!token ? (
               <>
-                <Link
-                  to="/login"
-                  className="bg-purple-700 hover:bg-purple-800 text-white text-sm px-4 py-2 rounded-lg transition-all duration-200"
-                >
-                  Login
-                </Link>
-                <Link
-                  to="/register"
-                  className="bg-purple-700 hover:bg-purple-800 text-white text-sm px-4 py-2 rounded-lg transition-all duration-200"
-                >
-                  Register
-                </Link>
+                <motion.div whileHover={{ scale: 1.05 }}>
+                  <Link
+                    to="/login"
+                    className="bg-sky-500 hover:bg-sky-600 text-white text-sm px-4 py-2 rounded-lg transition-all duration-200"
+                  >
+                    Login
+                  </Link>
+                </motion.div>
+                <motion.div whileHover={{ scale: 1.05 }}>
+                  <Link
+                    to="/register"
+                    className="bg-sky-500 hover:bg-sky-600 text-white text-sm px-4 py-2 rounded-lg transition-all duration-200"
+                  >
+                    Register
+                  </Link>
+                </motion.div>
               </>
             ) : (
-              <button
-                onClick={handleLogout}
-                className="bg-purple-700 hover:bg-purple-800 text-white text-sm px-4 py-2 rounded-lg transition-all duration-200"
-              >
-                Logout
-              </button>
+              <motion.div whileHover={{ scale: 1.05 }}>
+                <button
+                  onClick={handleLogout}
+                  className="bg-sky-500 hover:bg-sky-600 text-white text-sm px-4 py-2 rounded-lg transition-all duration-200 hover:cursor-pointer"
+                >
+                  Logout
+                </button>
+              </motion.div>
             )}
           </div>
 
           <div className="lg:hidden">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="p-2 rounded-md text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+              className="p-2 rounded-md text-gray-600 hover:bg-gray-100 transition hover:cursor-pointer"
             >
-              {isOpen ? (
-                <MdClose size={26} className="hover:cursor-pointer" />
-              ) : (
-                <MdMenu size={26} className="hover:cursor-pointer" />
-              )}
+              {isOpen ? <MdClose size={26} /> : <MdMenu size={26} />}
             </button>
           </div>
         </div>
       </div>
 
-      <div
-        className={`lg:hidden px-4 pb-4 transition-all duration-300 ease-in-out ${
-          isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0 overflow-hidden"
-        }`}
-      >
-        <ul className="flex flex-col space-y-2 mt-2">
-          {navItems.map((item, i) => (
-            <li key={i}>
-              <NavLink
-                to={item.path}
-                onClick={() => setIsOpen(false)}
-                className={({ isActive }) =>
-                  `block px-3 py-2 rounded text-sm font-medium transition-colors duration-200 ${
-                    isActive
-                      ? "text-white bg-purple-700"
-                      : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
-                  }`
-                }
-              >
-                {item.navlink}
-              </NavLink>
-            </li>
-          ))}
-        </ul>
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3 }}
+            className="lg:hidden px-4 pb-4 shadow-inner"
+          >
+            <ul className="flex flex-col space-y-3 mt-2">
+              {navItems.map((item, i) => (
+                <li key={i} className="mt-1">
+                  <NavLink
+                    to={item.path}
+                    onClick={() => setIsOpen(false)}
+                    className={({ isActive }) =>
+                      `block px-3 py-2 rounded text-sm font-medium transition-colors duration-200 ${
+                        isActive
+                          ? "text-white bg-sky-500"
+                          : "text-gray-700 hover:bg-sky-100"
+                      }`
+                    }
+                  >
+                    {item.navlink}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
 
-        <div className="flex flex-col mt-4 space-y-2">
-          {!token ? (
-            <>
-              <Link
-                to="/login"
-                className="bg-purple-700 text-white text-sm px-4 py-2 rounded-lg text-center hover:bg-purple-800 transition-all duration-200"
-              >
-                Login
-              </Link>
-              <Link
-                to="/register"
-                className="bg-purple-700 text-white text-sm px-4 py-2 rounded-lg text-center hover:bg-purple-800 transition-all duration-200"
-              >
-                Register
-              </Link>
-            </>
-          ) : (
-            <button
-              onClick={handleLogout}
-              className="bg-purple-700 text-white text-sm px-4 py-2 rounded-lg text-center hover:bg-purple-800 transition-all duration-200"
-            >
-              Logout
-            </button>
-          )}
-        </div>
-      </div>
+            <div className="flex flex-col mt-4 space-y-2">
+              {!token ? (
+                <>
+                  <Link
+                    to="/login"
+                    className="bg-sky-500 hover:bg-sky-600 text-white text-sm px-4 py-2 rounded-lg text-center transition-all duration-200"
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="bg-sky-500 hover:bg-sky-600 text-white text-sm px-4 py-2 rounded-lg text-center transition-all duration-200"
+                  >
+                    Register
+                  </Link>
+                </>
+              ) : (
+                <button
+                  onClick={handleLogout}
+                  className="bg-sky-500 hover:bg-sky-600 text-white text-sm px-4 py-2 rounded-lg text-center transition-all duration-200 hover:cursor-pointer"
+                >
+                  Logout
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }
