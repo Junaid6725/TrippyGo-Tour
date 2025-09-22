@@ -9,6 +9,7 @@ import {
 import { adminMiddleware } from "../middlewares/roleMiddleware.js";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 import { upload } from "../middlewares/uploadMiddleware.js";
+import { getToursByLocation } from "../controllers/destinationController.js";
 
 const router = express.Router();
 
@@ -31,5 +32,7 @@ router.delete("/delete-tour/:id", authMiddleware, adminMiddleware, deleteTour);
 router.get("/get-tours", getAllTours);
 
 router.get("/get-tour/:id", getTour);
+
+router.get("/destination", getToursByLocation);
 
 export default router;

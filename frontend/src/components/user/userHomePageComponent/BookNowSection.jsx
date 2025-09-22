@@ -12,7 +12,6 @@ const BookNowSection = () => {
       className="relative bg-gradient-to-r from-blue-50 via-white to-blue-50 overflow-hidden rounded-2xl shadow-lg w-full"
     >
       <div className="grid grid-cols-1 md:grid-cols-2">
-        {/* Left Content */}
         <motion.div
           initial={{ x: -50, opacity: 0 }}
           whileInView={{ x: 0, opacity: 1 }}
@@ -40,7 +39,6 @@ const BookNowSection = () => {
           </div>
         </motion.div>
 
-        {/* Right Image */}
         <motion.div
           initial={{ x: 50, opacity: 0 }}
           whileInView={{ x: 0, opacity: 1 }}

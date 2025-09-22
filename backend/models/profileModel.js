@@ -9,19 +9,15 @@ const profileSchema = new mongoose.Schema(
     },
     profileImage: {
       type: String,
-      required: true,
     },
     about: {
       type: String,
-      required: true,
     },
     location: {
       type: String,
-      required: true,
     },
     travelerType: {
       type: String,
-      required: true,
     },
   },
   { timestamps: true }

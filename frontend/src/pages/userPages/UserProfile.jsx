@@ -12,75 +12,73 @@ const UserProfile = () => {
 
   const { register, handleSubmit, reset } = useForm();
 
-  // ✅ Fetch Profile from backend
+  // Fetch profile from backend
   const fetchProfile = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/get-profile", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.data.success || !res.data.profile) {
-        setProfile(null);
-      } else {
-        const prof = res.data.profile;
-
-        // Agar profile incomplete hai
-        if (!prof.profileImage || !prof.about || !prof.location) {
-          setProfile(null);
-        } else {
-          setProfile(prof);
-          reset({
-            about: prof.about || "",
-            location: prof.location || "",
-          });
-        }
-      }
-    } catch (error) {
-      console.error(error);
-      setProfile(null);
-    }
-    setLoading(false);
-  };
-
-  // ✅ Handle Profile Create/Update
-  const onSubmit = async (data) => {
-    try {
-      let imageUrl = profile?.profileImage || "";
-
-      // Agar naya image upload hua hai
-      if (data.profileImage && data.profileImage[0]) {
-        const formData = new FormData();
-        formData.append("file", data.profileImage[0]);
-        formData.append("upload_preset", "your_preset_name"); // apna Cloudinary preset
-        formData.append("cloud_name", "your_cloud_name");
-
-        const uploadRes = await axios.post(
-          "https://api.cloudinary.com/v1_1/your_cloud_name/image/upload",
-          formData
-        );
-        imageUrl = uploadRes.data.secure_url;
-      }
-
-      const res = await axios.post(
-        "http://localhost:8000/api/create-profile",
-        {
-          about: data.about,
-          location: data.location,
-          profileImage: imageUrl,
-        },
+      const response = await axios.get(
+        "http://localhost:8000/api/get-profile",
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
 
-      if (res.data.success) {
-        alert("Profile saved successfully!");
+      if (response.data.success) {
+        setProfile(response.data.profile);
+        reset({
+          about: response.data.profile.about,
+          location: response.data.profile.location,
+          travelerType: response.data.profile.travelerType,
+        });
+      } else {
+        setProfile(null);
+      }
+    } catch (err) {
+      if (err.response && err.response.status === 404) {
+        setProfile(null);
+      } else {
+        console.error("Fetch profile error:", err);
+      }
+    }
+    setLoading(false);
+  };
+
+  // Create or update profile
+  const onSubmit = async (data) => {
+    try {
+      const formData = new FormData();
+      formData.append("about", data.about);
+      formData.append("location", data.location);
+      formData.append("travelerType", data.travelerType);
+
+      if (data.profileImage && data.profileImage[0]) {
+        formData.append("profileImage", data.profileImage[0]);
+      }
+
+      const endpoint = profile ? "/update-profile" : "/create-profile";
+      const method = profile ? "put" : "post";
+
+      const response = await axios({
+        url: `http://localhost:8000/api${endpoint}`,
+        method,
+        data: formData,
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.data.success) {
+        alert(response.data.message);
         setShowForm(false);
         fetchProfile();
+      } else {
+        alert(response.data.message || "Something went wrong");
       }
     } catch (error) {
-      console.error(error);
-      alert("Error saving profile");
+      console.error("Submit profile error:", error);
+      alert(
+        error.response?.data?.message || "Error saving profile. Check console."
+      );
     }
   };
 
@@ -92,7 +90,7 @@ const UserProfile = () => {
 
   return (
     <div className="container mx-auto p-6">
-      {/* Profile Not Found OR Incomplete */}
+      {/* No profile yet */}
       {!profile && !showForm && (
         <div className="bg-white rounded-xl shadow-lg p-8 text-center">
           <h1 className="text-2xl font-bold text-gray-800 mb-4">
@@ -110,7 +108,7 @@ const UserProfile = () => {
         </div>
       )}
 
-      {/* Profile Create / Update Form */}
+      {/* Create / Update form */}
       {showForm && (
         <form
           onSubmit={handleSubmit(onSubmit)}
@@ -133,6 +131,14 @@ const UserProfile = () => {
             <label className="block text-gray-700">Location</label>
             <input
               {...register("location", { required: true })}
+              className="w-full border rounded px-3 py-2 mt-1"
+            />
+          </div>
+
+          <div className="mb-4">
+            <label className="block text-gray-700">Traveler Type</label>
+            <input
+              {...register("travelerType", { required: true })}
               className="w-full border rounded px-3 py-2 mt-1"
             />
           </div>
@@ -164,10 +170,10 @@ const UserProfile = () => {
         </form>
       )}
 
-      {/* Profile Exists & Complete */}
+      {/* Profile exists */}
       {profile && !showForm && (
         <div className="flex flex-col md:flex-row bg-white rounded-xl shadow-lg overflow-hidden">
-          {/* Left Sidebar */}
+          {/* Left sidebar */}
           <div className="md:w-2/5 flex flex-col items-center justify-center p-8 bg-blue-500">
             <img
               src={profile.profileImage}
@@ -194,7 +200,7 @@ const UserProfile = () => {
             </div>
           </div>
 
-          {/* Right Content */}
+          {/* Right content */}
           <div className="md:w-3/5 p-8">
             <h3 className="text-2xl font-bold text-gray-800 mb-4">About Me</h3>
             <p className="text-gray-600 leading-relaxed">{profile.about}</p>

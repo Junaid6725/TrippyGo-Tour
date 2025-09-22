@@ -2,7 +2,8 @@ import express from "express";
 import {
   getAllUsers,
   getProfile,
-  userProfile,
+  updateProfile,
+  createProfile,
 } from "../controllers/userController.js";
 import { authMiddleware } from "./../middlewares/authMiddleware.js";
 import {
@@ -15,13 +16,20 @@ const router = express.Router();
 
 router.get("/get-users", authMiddleware, adminMiddleware, getAllUsers);
 
-router.get("/get-profile", authMiddleware, userMiddleware, getProfile);
-
+router.get("/get-profile", authMiddleware, getProfile);
 router.post(
   "/create-profile",
   authMiddleware,
-  upload.single("img"),
-  userProfile
+  userMiddleware,
+  upload.single("profileImage"),
+  createProfile
+);
+router.put(
+  "/update-profile",
+  authMiddleware,
+  userMiddleware,
+  upload.single("profileImage"),
+  updateProfile
 );
 
 export default router;

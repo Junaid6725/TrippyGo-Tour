@@ -17,68 +17,90 @@ export const getAllUsers = async (req, res) => {
   }
 };
 
-export const userProfile = async (req, res) => {
+export const createProfile = async (req, res) => {
   try {
+    const user = req.user.id;
     const { about, location, travelerType } = req.body;
-    let profileUrl;
+
+    let profileImageUrl = null;
     if (req.file) {
-      profileUrl = req.file.path;
+      profileImageUrl = req.file.path;
     }
-    let userId = req.user._id;
-    let profile = await Profile.findOne({ user: userId }).populate(
-      "user",
-      "email"
-    );
-    if (!profile) {
-      profile = new Profile({
-        user: userId,
-        profileImage: profileUrl,
-        about,
-        location,
-        travelerType,
-      });
-      await profile.save();
-      res
-        .status(201)
-        .json({ success: true, message: "Profile saved", profile });
-    }
+
+    const profile = new Profile({
+      user: user,
+      about,
+      location,
+      travelerType,
+      profileImage: profileImageUrl,
+    });
+
+    await profile.save();
+
+    res.status(201).json({
+      success: true,
+      message: "Profile created successfully",
+      profile,
+    });
   } catch (error) {
-    res.status(500).json({ error: "Error saving profile" });
+    console.error("Create profile error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error creating profile",
+      error: error.message,
+    });
   }
 };
 
 export const getProfile = async (req, res) => {
   try {
-    const userId = req.user._id;
-
-    if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: "User ID missing from request",
-      });
-    }
-
-    const profile = await Profile.findOne({ user: userId }).populate(
+    const profile = await Profile.findOne({ user: req.user.id }).populate(
       "user",
-      "name email"
+      "name email createdAt"
     );
 
-    if (!profile) {
-      return res.status(404).json({
-        success: false,
-        message: "User profile not found",
-      });
-    }
+    if (!profile)
+      return res
+        .status(404)
+        .json({ success: false, message: "Profile not created yet" });
 
-    return res.status(200).json({
+    res.status(200).json({ success: true, profile });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Error fetching profile",
+      error: error.message,
+    });
+  }
+};
+
+export const updateProfile = async (req, res) => {
+  try {
+    const { about, location, travelerType } = req.body;
+    const profile = await Profile.findOne({ user: req.user.id });
+
+    if (!profile)
+      return res
+        .status(404)
+        .json({ success: false, message: "Profile not found" });
+
+    profile.about = about || profile.about;
+    profile.location = location || profile.location;
+    profile.travelerType = travelerType || profile.travelerType;
+    if (req.file?.path) profile.profileImage = req.file.path;
+
+    await profile.save();
+
+    res.status(200).json({
       success: true,
+      message: "Profile updated successfully",
       profile,
     });
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({
+    res.status(500).json({
       success: false,
-      message: "Server error",
+      message: "Error updating profile",
+      error: error.message,
     });
   }
 };
