@@ -17,6 +17,8 @@ import {
   MdAccessTime,
   MdCheck,
 } from "react-icons/md";
+import { GiConfirmed, GiSandsOfTime } from "react-icons/gi";
+import { RxCross1 } from "react-icons/rx";
 
 const AllBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -33,19 +35,45 @@ const AllBookings = () => {
     bookingTotal: 0,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [updateMessage, setUpdateMessage] = useState({ type: "", text: "" });
   const token = useSelector((state) => state.auth.token);
   const actionMenuRef = useRef(null);
 
+  const statusOptions = [
+    { value: "pending", label: "Pending", color: "yellow", icon: "⏳" },
+    { value: "confirmed", label: "Confirmed", color: "green", icon: "✅" },
+    { value: "rejected", label: "Rejected", color: "red", icon: "❌" },
+  ];
+
+  const getStatusConfig = (status) => {
+    return (
+      statusOptions.find((opt) => opt.value === status?.toLowerCase()) ||
+      statusOptions[0]
+    );
+  };
+
   const fetchBookings = async () => {
     try {
+      setIsInitialLoading(true);
       const response = await axios.get(
         `http://localhost:8000/api/get-bookings`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Cache-Control": "no-cache",
+          },
+        }
       );
       setBookings(response.data.booking || []);
     } catch (error) {
-      console.log(error);
+      console.error("Error fetching bookings:", error);
+      setUpdateMessage({
+        type: "error",
+        text: "Failed to load bookings. Please try again.",
+      });
+    } finally {
+      setIsInitialLoading(false);
     }
   };
 
@@ -69,6 +97,45 @@ const AllBookings = () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  // Handle modal outside clicks and ESC key
+  useEffect(() => {
+    const handleEscape = (event) => {
+      if (event.keyCode === 27) {
+        closeModals();
+      }
+    };
+
+    const handleOutsideClick = (event) => {
+      if (
+        (showDetailModal || showActionModal) &&
+        event.target.classList.contains("fixed")
+      ) {
+        closeModals();
+      }
+    };
+
+    document.addEventListener("keydown", handleEscape);
+    document.addEventListener("click", handleOutsideClick);
+
+    return () => {
+      document.removeEventListener("keydown", handleEscape);
+      document.removeEventListener("click", handleOutsideClick);
+    };
+  }, [showDetailModal, showActionModal]);
+
+  // Handle body overflow when modals are open
+  useEffect(() => {
+    if (showDetailModal || showActionModal) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [showDetailModal, showActionModal]);
 
   const openDetailModal = (booking) => {
     setSelectedBooking(booking);
@@ -161,30 +228,43 @@ const AllBookings = () => {
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Invalid Date";
+
+      return date.toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    } catch (error) {
+      return "Invalid Date";
+    }
   };
 
   const formatTime = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString("en-US", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Invalid Time";
+
+      return date.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    } catch (error) {
+      return "Invalid Time";
+    }
   };
 
   // Get status badge style
   const getStatusBadgeStyle = (status) => {
-    switch (status?.toLowerCase()) {
-      case "confirmed":
+    const config = getStatusConfig(status);
+    switch (config.color) {
+      case "green":
         return "bg-green-50 text-green-700 border-green-200";
-      case "pending":
+      case "yellow":
         return "bg-yellow-50 text-yellow-700 border-yellow-200";
-      case "rejected":
+      case "red":
         return "bg-red-50 text-red-700 border-red-200";
       default:
         return "bg-gray-50 text-gray-700 border-gray-200";
@@ -193,16 +273,7 @@ const AllBookings = () => {
 
   // Get status icon
   const getStatusIcon = (status) => {
-    switch (status?.toLowerCase()) {
-      case "confirmed":
-        return "✅";
-      case "pending":
-        return "⏳";
-      case "rejected":
-        return "❌";
-      default:
-        return "●";
-    }
+    return getStatusConfig(status).icon;
   };
 
   // Filter bookings based on search term and status
@@ -219,11 +290,11 @@ const AllBookings = () => {
   });
 
   return (
-    <div className="p-3 sm:p-4 bg-gradient-to-br from-gray-50 to-blue-50 min-h-screen">
+    <div className="p-3 sm:p-4 min-h-screen">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-4 sm:mb-6">
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-violet-600 to-blue-600 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-blue-600 bg-clip-text text-transparent">
             All Bookings
           </h1>
           <p className="text-gray-600 text-sm sm:text-base mt-1">
@@ -260,7 +331,9 @@ const AllBookings = () => {
                 </p>
               </div>
               <div className="p-3 bg-green-50 rounded-lg">
-                <span className="text-green-600 text-xl">✅</span>
+                <span className="text-green-600 text-xl">
+                  <GiConfirmed />
+                </span>
               </div>
             </div>
           </div>
@@ -278,7 +351,9 @@ const AllBookings = () => {
                 </p>
               </div>
               <div className="p-3 bg-yellow-50 rounded-lg">
-                <span className="text-yellow-600 text-xl">⏳</span>
+                <span className="text-yellow-600 text-xl">
+                  <GiSandsOfTime />
+                </span>
               </div>
             </div>
           </div>
@@ -296,7 +371,9 @@ const AllBookings = () => {
                 </p>
               </div>
               <div className="p-3 bg-red-50 rounded-lg">
-                <span className="text-red-600 text-xl">❌</span>
+                <span className="text-red-600 text-xl">
+                  <RxCross1 />
+                </span>
               </div>
             </div>
           </div>
@@ -353,7 +430,11 @@ const AllBookings = () => {
           </div>
         </div>
 
-        {filteredBookings.length === 0 ? (
+        {isInitialLoading ? (
+          <div className="flex justify-center items-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        ) : filteredBookings.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100">
             <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <MdCalendarToday className="text-gray-400 text-3xl" />
@@ -476,7 +557,7 @@ const AllBookings = () => {
 
                           {/* Action Menu Dropdown */}
                           {activeActionMenu === item._id && (
-                            <div className="absolute right-0 top-10 z-10 bg-white rounded-xl shadow-lg border border-gray-200 min-w-32 py-2">
+                            <div className="absolute right-0 top-10 z-10 bg-white rounded-xl shadow-lg border border-gray-200 min-w-32 py-2 transform -translate-x-2">
                               <button
                                 onClick={() => openDetailModal(item)}
                                 className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
@@ -516,8 +597,14 @@ const AllBookings = () => {
 
         {/* Booking Detail Modal */}
         {showDetailModal && selectedBooking && (
-          <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+          <div
+            className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4"
+            onClick={closeModals}
+          >
+            <div
+              className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="flex justify-between items-center p-6 border-b border-gray-200">
                 <h2 className="text-xl font-bold text-gray-800">
                   Booking Details
@@ -630,8 +717,14 @@ const AllBookings = () => {
 
         {/* Edit Booking Modal */}
         {showActionModal && selectedBooking && (
-          <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4">
-            <div className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto">
+          <div
+            className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4"
+            onClick={closeModals}
+          >
+            <div
+              className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div className="flex justify-between items-center p-6 border-b border-gray-200">
                 <h2 className="text-xl font-bold text-gray-800">
                   Edit Booking
