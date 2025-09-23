@@ -4,6 +4,7 @@ import {
   getProfile,
   updateProfile,
   createProfile,
+  deleteUser,
 } from "../controllers/userController.js";
 import { authMiddleware } from "./../middlewares/authMiddleware.js";
 import {
@@ -31,5 +32,6 @@ router.put(
   upload.single("profileImage"),
   updateProfile
 );
+router.delete("/delete-user/:id", authMiddleware, adminMiddleware, deleteUser);
 
 export default router;
