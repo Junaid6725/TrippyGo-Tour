@@ -16,6 +16,12 @@ import {
   MdAttachMoney,
   MdAccessTime,
   MdCheck,
+  MdEmail,
+  MdNotes,
+  MdSchedule,
+  MdCheckCircle,
+  MdCancel,
+  MdDoneAll,
 } from "react-icons/md";
 import { GiConfirmed, GiSandsOfTime } from "react-icons/gi";
 import { RxCross1 } from "react-icons/rx";
@@ -33,17 +39,53 @@ const AllBookings = () => {
     bookingStatus: "",
     totalMembers: 0,
     bookingTotal: 0,
+    specialRequests: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [updateMessage, setUpdateMessage] = useState({ type: "", text: "" });
+  const [updatingStatus, setUpdatingStatus] = useState(null); // Track which booking is being updated
   const token = useSelector((state) => state.auth.token);
   const actionMenuRef = useRef(null);
 
+  // Enhanced status options with better configuration
   const statusOptions = [
-    { value: "pending", label: "Pending", color: "yellow", icon: "⏳" },
-    { value: "confirmed", label: "Confirmed", color: "green", icon: "✅" },
-    { value: "rejected", label: "Rejected", color: "red", icon: "❌" },
+    {
+      value: "pending",
+      label: "Pending",
+      color: "yellow",
+      icon: "⏳",
+      bgColor: "bg-yellow-50",
+      textColor: "text-yellow-700",
+      borderColor: "border-yellow-200",
+    },
+    {
+      value: "confirmed",
+      label: "Confirmed",
+      color: "green",
+      icon: "✅",
+      bgColor: "bg-green-50",
+      textColor: "text-green-700",
+      borderColor: "border-green-200",
+    },
+    {
+      value: "rejected",
+      label: "Rejected",
+      color: "red",
+      icon: "❌",
+      bgColor: "bg-red-50",
+      textColor: "text-red-700",
+      borderColor: "border-red-200",
+    },
+    // {
+    //   value: "completed",
+    //   label: "Completed",
+    //   color: "blue",
+    //   icon: "✓",
+    //   bgColor: "bg-blue-50",
+    //   textColor: "text-blue-700",
+    //   borderColor: "border-blue-200",
+    // },
   ];
 
   const getStatusConfig = (status) => {
@@ -149,6 +191,7 @@ const AllBookings = () => {
       bookingStatus: booking.bookingStatus || "pending",
       totalMembers: booking.totalMembers || 0,
       bookingTotal: booking.bookingTotal || 0,
+      specialRequests: booking.specialRequests || "",
     });
     setShowActionModal(true);
     setActiveActionMenu(null);
@@ -163,6 +206,7 @@ const AllBookings = () => {
       bookingStatus: "",
       totalMembers: 0,
       bookingTotal: 0,
+      specialRequests: "",
     });
     setUpdateMessage({ type: "", text: "" });
   };
@@ -178,7 +222,57 @@ const AllBookings = () => {
     }));
   };
 
-  const updateBookingStatus = async () => {
+  // Quick status update function
+  const updateBookingStatus = async (bookingId, newStatus) => {
+    if (!bookingId) return;
+
+    setUpdatingStatus(bookingId);
+    setUpdateMessage({ type: "", text: "" });
+
+    try {
+      const response = await axios.put(
+        `http://localhost:8000/api/update-booking/${bookingId}`,
+        {
+          bookingStatus: newStatus,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      if (response.data.success) {
+        // Update the local state
+        setBookings((prevBookings) =>
+          prevBookings.map((booking) =>
+            booking._id === bookingId
+              ? { ...booking, bookingStatus: newStatus }
+              : booking
+          )
+        );
+
+        // Show success message
+        setUpdateMessage({
+          type: "success",
+          text: `Status updated to ${
+            newStatus.charAt(0).toUpperCase() + newStatus.slice(1)
+          }!`,
+        });
+
+        // Clear message after 3 seconds
+        setTimeout(() => {
+          setUpdateMessage({ type: "", text: "" });
+        }, 3000);
+      }
+    } catch (error) {
+      console.error("Error updating booking status:", error);
+      setUpdateMessage({
+        type: "error",
+        text: "Failed to update status. Please try again.",
+      });
+    } finally {
+      setUpdatingStatus(null);
+    }
+  };
+
+  const updateBookingDetails = async () => {
     if (!selectedBooking) return;
 
     setIsLoading(true);
@@ -191,6 +285,7 @@ const AllBookings = () => {
           bookingStatus: editForm.bookingStatus,
           totalMembers: editForm.totalMembers,
           bookingTotal: editForm.bookingTotal,
+          specialRequests: editForm.specialRequests,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -250,25 +345,35 @@ const AllBookings = () => {
       return date.toLocaleTimeString("en-US", {
         hour: "2-digit",
         minute: "2-digit",
+        hour12: true,
       });
     } catch (error) {
       return "Invalid Time";
     }
   };
 
+  const formatDateTime = (dateString) => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return "Invalid Date/Time";
+
+      return date.toLocaleString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: true,
+      });
+    } catch (error) {
+      return "Invalid Date/Time";
+    }
+  };
+
   // Get status badge style
   const getStatusBadgeStyle = (status) => {
     const config = getStatusConfig(status);
-    switch (config.color) {
-      case "green":
-        return "bg-green-50 text-green-700 border-green-200";
-      case "yellow":
-        return "bg-yellow-50 text-yellow-700 border-yellow-200";
-      case "red":
-        return "bg-red-50 text-red-700 border-red-200";
-      default:
-        return "bg-gray-50 text-gray-700 border-gray-200";
-    }
+    return `${config.bgColor} ${config.textColor} ${config.borderColor}`;
   };
 
   // Get status icon
@@ -280,7 +385,8 @@ const AllBookings = () => {
   const filteredBookings = bookings.filter((booking) => {
     const matchesSearch =
       booking.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.phoneNumber?.includes(searchTerm);
+      booking.phoneNumber?.includes(searchTerm) ||
+      booking.email?.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesStatus =
       statusFilter === "All" ||
@@ -302,81 +408,174 @@ const AllBookings = () => {
           </p>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-4 sm:mb-6">
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+        {/* Update Message Banner */}
+        {updateMessage.text && (
+          <div
+            className={`mb-4 p-4 rounded-xl border ${
+              updateMessage.type === "success"
+                ? "bg-green-50 border-green-200 text-green-700"
+                : "bg-red-50 border-red-200 text-red-700"
+            }`}
+          >
             <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {updateMessage.type === "success" ? (
+                  <MdCheck className="text-green-600" size={20} />
+                ) : (
+                  <MdClose className="text-red-600" size={20} />
+                )}
+                <span className="font-medium">{updateMessage.text}</span>
+              </div>
+              <button
+                onClick={() => setUpdateMessage({ type: "", text: "" })}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <MdClose size={18} />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+          {/* Total Bookings Card */}
+          <div className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 rounded-2xl p-6 relative overflow-hidden group transform hover:scale-105 transition-all duration-500 hover:shadow-2xl shadow-lg">
+            {/* Animated background elements */}
+            <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full animate-pulse"></div>
+            <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-white/5 rounded-full"></div>
+
+            {/* Glow effect on hover */}
+            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+
+            <div className="flex items-center justify-between relative z-10">
               <div>
-                <p className="text-sm text-gray-600">Total Bookings</p>
-                <p className="text-2xl font-bold text-gray-800">
+                <p className="text-blue-100 text-sm font-medium mb-1 tracking-wide">
+                  Total Bookings
+                </p>
+                <p className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
                   {bookings.length}
                 </p>
+                <div className="flex items-center gap-2">
+                  <span className="text-blue-200 text-xs bg-white/10 px-2 py-1 rounded-full">
+                    All time
+                  </span>
+                  <div className="w-16 bg-white/20 rounded-full h-1">
+                    <div className="bg-white h-1 rounded-full w-full"></div>
+                  </div>
+                </div>
               </div>
-              <div className="p-3 bg-blue-50 rounded-lg">
-                <MdCalendarToday className="text-blue-600 text-xl" />
+              <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-lg">
+                <MdCalendarToday className="text-white text-2xl" />
               </div>
             </div>
+
+            {/* Animated bottom border */}
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/40 to-transparent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
           </div>
 
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Confirmed</p>
-                <p className="text-2xl font-bold text-green-600">
-                  {
-                    bookings.filter(
-                      (b) => b.bookingStatus?.toLowerCase() === "confirmed"
-                    ).length
-                  }
-                </p>
-              </div>
-              <div className="p-3 bg-green-50 rounded-lg">
-                <span className="text-green-600 text-xl">
-                  <GiConfirmed />
-                </span>
-              </div>
-            </div>
-          </div>
+          {/* Status Cards */}
+          {[
+            {
+              value: "pending",
+              label: "Pending",
+              gradient: "from-amber-400 to-orange-500",
+              icon: <MdSchedule className="text-2xl" />,
+              description: "Awaiting confirmation",
+              iconBg: "bg-amber-500/20",
+            },
+            {
+              value: "confirmed",
+              label: "Confirmed",
+              gradient: "from-emerald-400 to-green-600",
+              icon: <MdCheckCircle className="text-2xl" />,
+              description: "Bookings confirmed",
+              iconBg: "bg-emerald-500/20",
+            },
+            {
+              value: "rejected",
+              label: "Rejected",
+              gradient: "from-rose-500 to-red-600",
+              icon: <MdCancel className="text-2xl" />,
+              description: "Bookings declined",
+              iconBg: "bg-rose-500/20",
+            },
+            {
+              value: "completed",
+              label: "Completed",
+              gradient: "from-purple-500 to-indigo-700",
+              icon: <MdDoneAll className="text-2xl" />,
+              description: "Finished trips",
+              iconBg: "bg-purple-500/20",
+            },
+          ].map((status) => {
+            const count = bookings.filter(
+              (b) => b.bookingStatus?.toLowerCase() === status.value
+            ).length;
+            const percentage =
+              bookings.length > 0
+                ? ((count / bookings.length) * 100).toFixed(1)
+                : 0;
 
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Pending</p>
-                <p className="text-2xl font-bold text-yellow-600">
-                  {
-                    bookings.filter(
-                      (b) => b.bookingStatus?.toLowerCase() === "pending"
-                    ).length
-                  }
-                </p>
-              </div>
-              <div className="p-3 bg-yellow-50 rounded-lg">
-                <span className="text-yellow-600 text-xl">
-                  <GiSandsOfTime />
-                </span>
-              </div>
-            </div>
-          </div>
+            return (
+              <div
+                key={status.value}
+                className={`bg-gradient-to-br ${status.gradient} rounded-2xl p-6 relative overflow-hidden group transform hover:scale-105 transition-all duration-500 hover:shadow-2xl shadow-lg`}
+              >
+                {/* Floating background elements */}
+                <div className="absolute -top-12 -right-12 w-32 h-32 bg-white/10 rounded-full"></div>
+                <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-white/5 rounded-full"></div>
 
-          <div className="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600">Rejected</p>
-                <p className="text-2xl font-bold text-red-600">
-                  {
-                    bookings.filter(
-                      (b) => b.bookingStatus?.toLowerCase() === "rejected"
-                    ).length
-                  }
-                </p>
+                {/* Shine effect on hover */}
+                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+
+                <div className="flex items-center justify-between relative z-10">
+                  <div className="flex-1">
+                    <p className="text-white/90 text-sm font-semibold mb-2 tracking-wide uppercase">
+                      {status.label}
+                    </p>
+                    <p className="text-4xl font-bold text-white mb-3 drop-shadow-lg">
+                      {count}
+                    </p>
+
+                    {/* Enhanced progress bar */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-white/80 text-xs font-medium">
+                          Progress
+                        </span>
+                        <span className="text-white text-xs font-bold bg-white/20 px-2 py-1 rounded-full">
+                          {percentage}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-white/20 rounded-full h-2.5 shadow-inner">
+                        <div
+                          className="bg-white h-2.5 rounded-full shadow-lg transition-all duration-1000 ease-out"
+                          style={{ width: `${percentage}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Enhanced icon container */}
+                  <div
+                    className={`p-4 rounded-2xl backdrop-blur-sm group-hover:scale-110 transition-all duration-300 ml-4 shadow-lg ${status.iconBg}`}
+                  >
+                    {status.icon}
+                  </div>
+                </div>
+
+                {/* Hover description */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 rounded-2xl flex items-center justify-center">
+                  <span className="text-white text-sm font-semibold opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 bg-black/30 px-3 py-2 rounded-full backdrop-blur-sm">
+                    {status.description}
+                  </span>
+                </div>
+
+                {/* Animated border */}
+                <div className="absolute bottom-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-white/50 to-transparent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
               </div>
-              <div className="p-3 bg-red-50 rounded-lg">
-                <span className="text-red-600 text-xl">
-                  <RxCross1 />
-                </span>
-              </div>
-            </div>
-          </div>
+            );
+          })}
         </div>
 
         {/* Search and Filter Section */}
@@ -388,7 +587,7 @@ const AllBookings = () => {
               </div>
               <input
                 type="text"
-                placeholder="Search by name or phone..."
+                placeholder="Search by name, phone, or email..."
                 className="pl-10 pr-4 py-3 w-full border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all text-sm sm:text-base bg-gray-50"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -420,9 +619,11 @@ const AllBookings = () => {
                     onChange={(e) => setStatusFilter(e.target.value)}
                   >
                     <option value="All">All Statuses</option>
-                    <option value="confirmed">Confirmed</option>
-                    <option value="pending">Pending</option>
-                    <option value="rejected">Rejected</option>
+                    {statusOptions.map((status) => (
+                      <option key={status.value} value={status.value}>
+                        {status.label}
+                      </option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -506,6 +707,14 @@ const AllBookings = () => {
                           <MdPhone className="text-gray-400" size={14} />
                           {item.phoneNumber || "N/A"}
                         </div>
+                        {item.email && (
+                          <div className="flex items-center gap-2 mt-1">
+                            <MdEmail className="text-gray-400" size={12} />
+                            <span className="text-xs text-gray-500 truncate max-w-[150px]">
+                              {item.email}
+                            </span>
+                          </div>
+                        )}
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
                         <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium border border-blue-200">
@@ -527,17 +736,33 @@ const AllBookings = () => {
                         </div>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${getStatusBadgeStyle(
-                            item.bookingStatus
-                          )}`}
-                        >
-                          <span className="text-xs">
-                            {getStatusIcon(item.bookingStatus)}
-                          </span>
-                          {item.bookingStatus?.charAt(0).toUpperCase() +
-                            item.bookingStatus?.slice(1) || "Pending"}
-                        </span>
+                        <div className="relative">
+                          <select
+                            value={item.bookingStatus || "pending"}
+                            onChange={(e) =>
+                              updateBookingStatus(item._id, e.target.value)
+                            }
+                            disabled={updatingStatus === item._id}
+                            className={`appearance-none inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border cursor-pointer transition-all ${getStatusBadgeStyle(
+                              item.bookingStatus
+                            )} ${
+                              updatingStatus === item._id
+                                ? "opacity-50 cursor-not-allowed"
+                                : "hover:opacity-80"
+                            }`}
+                          >
+                            {statusOptions.map((status) => (
+                              <option key={status.value} value={status.value}>
+                                {status.label}
+                              </option>
+                            ))}
+                          </select>
+                          {updatingStatus === item._id && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 rounded-full">
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                            </div>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-4 font-semibold text-gray-900 whitespace-nowrap text-sm">
                         <div className="flex items-center gap-1">
@@ -555,7 +780,6 @@ const AllBookings = () => {
                             <MdMoreVert size={18} />
                           </button>
 
-                          {/* Action Menu Dropdown */}
                           {activeActionMenu === item._id && (
                             <div className="absolute right-0 top-10 z-10 bg-white rounded-xl shadow-lg border border-gray-200 min-w-32 py-2 transform -translate-x-2">
                               <button
@@ -587,7 +811,6 @@ const AllBookings = () => {
           </div>
         )}
 
-        {/* Mobile view tip */}
         <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl text-sm text-blue-700 lg:hidden border border-blue-100">
           <p className="flex items-center justify-center gap-2">
             <span>💡</span>
@@ -595,14 +818,14 @@ const AllBookings = () => {
           </p>
         </div>
 
-        {/* Booking Detail Modal */}
+        {/* Enhanced Booking Detail Modal */}
         {showDetailModal && selectedBooking && (
           <div
             className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4"
             onClick={closeModals}
           >
             <div
-              className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
+              className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               <div className="flex justify-between items-center p-6 border-b border-gray-200">
@@ -618,79 +841,120 @@ const AllBookings = () => {
               </div>
 
               <div className="p-6 space-y-6">
-                {/* Guest Info */}
-                <div className="flex items-center p-4 bg-gray-50 rounded-xl">
-                  <div className="h-12 w-12 flex-shrink-0 bg-gradient-to-br from-violet-500 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold text-lg mr-4">
-                    {selectedBooking.fullName?.charAt(0) || "G"}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900">
-                      {selectedBooking.fullName || "Guest"}
-                    </h3>
-                    <p className="text-sm text-gray-500 flex items-center gap-1 mt-1">
-                      <MdPhone size={14} />
-                      {selectedBooking.phoneNumber || "N/A"}
-                    </p>
+                {/* Guest Information */}
+                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-100">
+                  <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
+                    <MdPerson className="text-blue-600" size={18} />
+                    Guest Information
+                  </h3>
+                  <div className="flex items-center">
+                    <div className="h-16 w-16 flex-shrink-0 bg-gradient-to-br from-violet-500 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold text-xl mr-4">
+                      {selectedBooking.fullName?.charAt(0) || "G"}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 text-lg">
+                        {selectedBooking.fullName || "Guest"}
+                      </h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                        <p className="text-sm text-gray-600 flex items-center gap-2">
+                          <MdPhone size={14} />
+                          {selectedBooking.phoneNumber || "N/A"}
+                        </p>
+                        {selectedBooking.email && (
+                          <p className="text-sm text-gray-600 flex items-center gap-2">
+                            <MdEmail size={14} />
+                            {selectedBooking.email}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
                 {/* Booking Details Grid */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-xs text-gray-500 font-medium">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <p className="text-xs text-gray-500 font-medium mb-2">
                       Guest Size
                     </p>
-                    <p className="font-semibold text-sm flex items-center gap-1 mt-1">
-                      <MdPerson size={14} />
+                    <p className="font-semibold text-sm flex items-center gap-2">
+                      <MdPerson size={16} />
                       {selectedBooking.totalMembers || 0} people
                     </p>
                   </div>
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-xs text-gray-500 font-medium">
+
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <p className="text-xs text-gray-500 font-medium mb-2">
                       Total Amount
                     </p>
-                    <p className="font-semibold text-sm flex items-center gap-1 mt-1">
-                      <MdAttachMoney size={14} />$
+                    <p className="font-semibold text-sm flex items-center gap-2">
+                      <MdAttachMoney size={16} />$
                       {selectedBooking.bookingTotal || 0}
                     </p>
                   </div>
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-xs text-gray-500 font-medium">
+
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <p className="text-xs text-gray-500 font-medium mb-2">
                       Booking Date
                     </p>
-                    <p className="font-semibold text-sm flex items-center gap-1 mt-1">
-                      <MdCalendarToday size={14} />
+                    <p className="font-semibold text-sm flex items-center gap-2">
+                      <MdCalendarToday size={16} />
                       {formatDate(selectedBooking.createdAt)}
                     </p>
                   </div>
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <p className="text-xs text-gray-500 font-medium">
+
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <p className="text-xs text-gray-500 font-medium mb-2">
                       Booking Time
                     </p>
-                    <p className="font-semibold text-sm flex items-center gap-1 mt-1">
-                      <MdAccessTime size={14} />
+                    <p className="font-semibold text-sm flex items-center gap-2">
+                      <MdAccessTime size={16} />
                       {formatTime(selectedBooking.createdAt)}
                     </p>
                   </div>
                 </div>
 
-                {/* Status */}
-                <div className="bg-gray-50 p-4 rounded-xl">
+                {/* Status Section */}
+                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
                   <p className="text-xs text-gray-500 font-medium mb-2">
-                    Status
+                    Current Status
                   </p>
-                  <span
-                    className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border ${getStatusBadgeStyle(
-                      selectedBooking.bookingStatus
-                    )}`}
-                  >
-                    <span className="text-sm">
-                      {getStatusIcon(selectedBooking.bookingStatus)}
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border ${getStatusBadgeStyle(
+                        selectedBooking.bookingStatus
+                      )}`}
+                    >
+                      <span className="text-sm">
+                        {getStatusIcon(selectedBooking.bookingStatus)}
+                      </span>
+                      {selectedBooking.bookingStatus?.charAt(0).toUpperCase() +
+                        selectedBooking.bookingStatus?.slice(1) || "Pending"}
                     </span>
-                    {selectedBooking.bookingStatus?.charAt(0).toUpperCase() +
-                      selectedBooking.bookingStatus?.slice(1) || "Pending"}
-                  </span>
+                    <button
+                      onClick={() => {
+                        setShowDetailModal(false);
+                        setTimeout(() => openActionModal(selectedBooking), 300);
+                      }}
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                    >
+                      Change Status
+                    </button>
+                  </div>
                 </div>
+
+                {/* Special Requests */}
+                {selectedBooking.specialRequests && (
+                  <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
+                    <p className="text-xs text-yellow-700 font-medium mb-2 flex items-center gap-2">
+                      <MdNotes size={14} />
+                      Special Requests
+                    </p>
+                    <p className="text-sm text-yellow-800">
+                      {selectedBooking.specialRequests}
+                    </p>
+                  </div>
+                )}
 
                 {/* Booking ID */}
                 <div className="pt-4 border-t border-gray-200">
@@ -701,21 +965,46 @@ const AllBookings = () => {
                     {selectedBooking._id}
                   </p>
                 </div>
+
+                {/* Additional Information */}
+                <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
+                  <p className="text-xs text-blue-700 font-medium mb-1">
+                    Additional Information
+                  </p>
+                  <p className="text-xs text-blue-600">
+                    Created: {formatDateTime(selectedBooking.createdAt)}
+                    {selectedBooking.updatedAt &&
+                      selectedBooking.updatedAt !== selectedBooking.createdAt &&
+                      ` • Updated: ${formatDateTime(
+                        selectedBooking.updatedAt
+                      )}`}
+                  </p>
+                </div>
               </div>
 
-              <div className="p-6 border-t border-gray-200">
+              <div className="p-6 border-t border-gray-200 flex gap-3">
                 <button
                   onClick={closeModals}
-                  className="w-full px-4 py-3 bg-gradient-to-r from-violet-600 to-blue-600 text-white rounded-xl hover:from-violet-700 hover:to-blue-700 transition-all duration-200 font-medium"
+                  className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium"
                 >
                   Close
+                </button>
+                <button
+                  onClick={() => {
+                    setShowDetailModal(false);
+                    setTimeout(() => openActionModal(selectedBooking), 300);
+                  }}
+                  className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium flex items-center justify-center gap-2"
+                >
+                  <MdEdit size={18} />
+                  Edit Booking
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* Edit Booking Modal */}
+        {/* Enhanced Edit Booking Modal */}
         {showActionModal && selectedBooking && (
           <div
             className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4"
@@ -775,9 +1064,11 @@ const AllBookings = () => {
                         handleEditChange("bookingStatus", e.target.value)
                       }
                     >
-                      <option value="pending">Pending</option>
-                      <option value="confirmed">Confirmed</option>
-                      <option value="rejected">Rejected</option>
+                      {statusOptions.map((status) => (
+                        <option key={status.value} value={status.value}>
+                          {status.label}
+                        </option>
+                      ))}
                     </select>
                   </div>
 
@@ -787,12 +1078,14 @@ const AllBookings = () => {
                     </label>
                     <input
                       type="number"
+                      min="1"
+                      max="50"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-gray-50 text-sm"
                       value={editForm.totalMembers}
                       onChange={(e) =>
                         handleEditChange(
                           "totalMembers",
-                          parseInt(e.target.value)
+                          parseInt(e.target.value) || 0
                         )
                       }
                     />
@@ -804,14 +1097,31 @@ const AllBookings = () => {
                     </label>
                     <input
                       type="number"
+                      min="0"
+                      step="0.01"
                       className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-gray-50 text-sm"
                       value={editForm.bookingTotal}
                       onChange={(e) =>
                         handleEditChange(
                           "bookingTotal",
-                          parseFloat(e.target.value)
+                          parseFloat(e.target.value) || 0
                         )
                       }
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Special Requests
+                    </label>
+                    <textarea
+                      rows="3"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-gray-50 text-sm resize-none"
+                      value={editForm.specialRequests}
+                      onChange={(e) =>
+                        handleEditChange("specialRequests", e.target.value)
+                      }
+                      placeholder="Any special requests or notes..."
                     />
                   </div>
                 </div>
@@ -826,7 +1136,7 @@ const AllBookings = () => {
                   Cancel
                 </button>
                 <button
-                  onClick={updateBookingStatus}
+                  onClick={updateBookingDetails}
                   disabled={isLoading}
                   className="flex-1 px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-medium disabled:opacity-50 flex items-center justify-center gap-2"
                 >
