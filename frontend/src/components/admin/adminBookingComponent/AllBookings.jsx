@@ -22,6 +22,7 @@ import {
   MdCheckCircle,
   MdCancel,
   MdDoneAll,
+  MdKeyboardArrowDown,
 } from "react-icons/md";
 import { GiConfirmed, GiSandsOfTime } from "react-icons/gi";
 import { RxCross1 } from "react-icons/rx";
@@ -204,9 +205,6 @@ const AllBookings = () => {
     setSelectedBooking(null);
     setEditForm({
       bookingStatus: "",
-      totalMembers: 0,
-      bookingTotal: 0,
-      specialRequests: "",
     });
     setUpdateMessage({ type: "", text: "" });
   };
@@ -249,12 +247,12 @@ const AllBookings = () => {
         );
 
         // Show success message
-        setUpdateMessage({
-          type: "success",
-          text: `Status updated to ${
-            newStatus.charAt(0).toUpperCase() + newStatus.slice(1)
-          }!`,
-        });
+        // setUpdateMessage({
+        //   type: "success",
+        //   text: `Status updated to ${
+        //     newStatus.charAt(0).toUpperCase() + newStatus.slice(1)
+        //   }!`,
+        // });
 
         // Clear message after 3 seconds
         setTimeout(() => {
@@ -269,56 +267,6 @@ const AllBookings = () => {
       });
     } finally {
       setUpdatingStatus(null);
-    }
-  };
-
-  const updateBookingDetails = async () => {
-    if (!selectedBooking) return;
-
-    setIsLoading(true);
-    setUpdateMessage({ type: "", text: "" });
-
-    try {
-      const response = await axios.put(
-        `http://localhost:8000/api/update-booking/${selectedBooking._id}`,
-        {
-          bookingStatus: editForm.bookingStatus,
-          totalMembers: editForm.totalMembers,
-          bookingTotal: editForm.bookingTotal,
-          specialRequests: editForm.specialRequests,
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      if (response.data.success) {
-        setUpdateMessage({
-          type: "success",
-          text: "Booking updated successfully!",
-        });
-
-        // Update the local state
-        setBookings((prevBookings) =>
-          prevBookings.map((booking) =>
-            booking._id === selectedBooking._id
-              ? { ...booking, ...editForm }
-              : booking
-          )
-        );
-
-        // Close modal after 2 seconds
-        setTimeout(() => {
-          setShowActionModal(false);
-          setSelectedBooking(null);
-        }, 2000);
-      }
-    } catch (error) {
-      console.error("Error updating booking:", error);
-      setUpdateMessage({
-        type: "error",
-        text: "Failed to update booking. Please try again.",
-      });
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -439,13 +387,13 @@ const AllBookings = () => {
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
           {/* Total Bookings Card */}
-          <div className="bg-gradient-to-br from-blue-500 via-blue-600 to-indigo-700 rounded-2xl p-6 relative overflow-hidden group transform hover:scale-105 transition-all duration-500 hover:shadow-2xl shadow-lg">
+          <div className="bg-blue-500 rounded-2xl p-6 relative overflow-hidden group transform hover:scale-105 transition-all duration-500 hover:shadow-2xl shadow-lg">
             {/* Animated background elements */}
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full animate-pulse"></div>
             <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-white/5 rounded-full"></div>
 
             {/* Glow effect on hover */}
-            <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/5 to-white/0 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+            <div className="absolute inset-0 bg-white/5 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
 
             <div className="flex items-center justify-between relative z-10">
               <div>
@@ -470,7 +418,7 @@ const AllBookings = () => {
             </div>
 
             {/* Animated bottom border */}
-            <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/40 to-transparent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+            <div className="absolute bottom-0 left-0 w-full h-1 bg-white/40 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
           </div>
 
           {/* Status Cards */}
@@ -478,34 +426,34 @@ const AllBookings = () => {
             {
               value: "pending",
               label: "Pending",
-              gradient: "from-amber-400 to-orange-500",
+              color: "bg-amber-500",
               icon: <MdSchedule className="text-2xl" />,
               description: "Awaiting confirmation",
-              iconBg: "bg-amber-500/20",
+              iconBg: "bg-amber-600/20",
             },
             {
               value: "confirmed",
               label: "Confirmed",
-              gradient: "from-emerald-400 to-green-600",
+              color: "bg-green-500",
               icon: <MdCheckCircle className="text-2xl" />,
               description: "Bookings confirmed",
-              iconBg: "bg-emerald-500/20",
+              iconBg: "bg-green-600/20",
             },
             {
               value: "rejected",
               label: "Rejected",
-              gradient: "from-rose-500 to-red-600",
+              color: "bg-red-500",
               icon: <MdCancel className="text-2xl" />,
               description: "Bookings declined",
-              iconBg: "bg-rose-500/20",
+              iconBg: "bg-red-600/20",
             },
             {
               value: "completed",
               label: "Completed",
-              gradient: "from-purple-500 to-indigo-700",
+              color: "bg-purple-500",
               icon: <MdDoneAll className="text-2xl" />,
               description: "Finished trips",
-              iconBg: "bg-purple-500/20",
+              iconBg: "bg-purple-600/20",
             },
           ].map((status) => {
             const count = bookings.filter(
@@ -519,14 +467,14 @@ const AllBookings = () => {
             return (
               <div
                 key={status.value}
-                className={`bg-gradient-to-br ${status.gradient} rounded-2xl p-6 relative overflow-hidden group transform hover:scale-105 transition-all duration-500 hover:shadow-2xl shadow-lg`}
+                className={`${status.color} rounded-2xl p-6 relative overflow-hidden group transform hover:scale-105 transition-all duration-500 hover:shadow-2xl shadow-lg`}
               >
                 {/* Floating background elements */}
                 <div className="absolute -top-12 -right-12 w-32 h-32 bg-white/10 rounded-full"></div>
                 <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-white/5 rounded-full"></div>
 
                 {/* Shine effect on hover */}
-                <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                <div className="absolute inset-0 bg-white/10 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
 
                 <div className="flex items-center justify-between relative z-10">
                   <div className="flex-1">
@@ -564,39 +512,35 @@ const AllBookings = () => {
                   </div>
                 </div>
 
-                {/* Hover description */}
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all duration-300 rounded-2xl flex items-center justify-center">
-                  <span className="text-white text-sm font-semibold opacity-0 group-hover:opacity-100 transform translate-y-4 group-hover:translate-y-0 transition-all duration-300 bg-black/30 px-3 py-2 rounded-full backdrop-blur-sm">
-                    {status.description}
-                  </span>
-                </div>
-
                 {/* Animated border */}
-                <div className="absolute bottom-0 left-0 w-full h-1.5 bg-gradient-to-r from-transparent via-white/50 to-transparent transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+                <div className="absolute bottom-0 left-0 w-full h-1.5 bg-white/50 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
               </div>
             );
           })}
         </div>
 
         {/* Search and Filter Section */}
-        <div className="bg-white rounded-2xl shadow-sm p-4 sm:p-6 mb-4 sm:mb-6 border border-gray-100">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 mb-4 sm:mb-6">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-            <div className="relative flex-1 min-w-0 w-full lg:max-w-md">
+            {/* Search Input */}
+            <div className="relative flex-1 w-full lg:max-w-md">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <MdSearch className="text-gray-400" size={20} />
               </div>
               <input
                 type="text"
                 placeholder="Search by name, phone, or email..."
-                className="pl-10 pr-4 py-3 w-full border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500 transition-all text-sm sm:text-base bg-gray-50"
+                className="pl-10 pr-4 py-3 w-full border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm bg-white"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
 
+            {/* Filter Controls */}
             <div className="flex gap-3 w-full lg:w-auto">
+              {/* Mobile Filter Toggle */}
               <button
-                className="flex items-center justify-center gap-2 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors lg:hidden text-sm font-medium"
+                className="flex lg:hidden items-center gap-2 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors text-sm font-medium"
                 onClick={() => setShowFilters(!showFilters)}
               >
                 {showFilters ? (
@@ -607,14 +551,11 @@ const AllBookings = () => {
                 {showFilters ? "Close" : "Filters"}
               </button>
 
-              <div
-                className={`${
-                  showFilters ? "flex" : "hidden"
-                } lg:flex flex-col lg:flex-row gap-3 w-full lg:w-auto`}
-              >
+              {/* Filter Dropdown */}
+              <div className={`${showFilters ? "flex" : "hidden"} lg:flex`}>
                 <div className="relative">
                   <select
-                    className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-violet-500 focus:border-violet-500 w-full appearance-none bg-gray-50 text-sm font-medium"
+                    className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full bg-white text-sm font-medium"
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                   >
@@ -682,14 +623,14 @@ const AllBookings = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {filteredBookings.map((item, index) => (
+                  {filteredBookings.map((item) => (
                     <tr
                       key={item._id}
                       className="hover:bg-gray-50 transition-all duration-200 group"
                     >
                       <td className="px-4 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <div className="h-10 w-10 flex-shrink-0 bg-gradient-to-br from-violet-500 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold mr-3 text-sm">
+                          <div className="h-10 w-10 flex-shrink-0 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold mr-3 text-sm">
                             {item.fullName?.charAt(0) || "G"}
                           </div>
                           <div>
@@ -774,7 +715,7 @@ const AllBookings = () => {
                         <div className="relative" ref={actionMenuRef}>
                           <button
                             onClick={() => toggleActionMenu(item._id)}
-                            className="p-2 text-gray-400 hover:text-violet-600 hover:bg-violet-50 rounded-xl transition-all duration-200"
+                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200"
                             title="Actions"
                           >
                             <MdMoreVert size={18} />
@@ -791,13 +732,6 @@ const AllBookings = () => {
                                   size={16}
                                 />
                                 View Details
-                              </button>
-                              <button
-                                onClick={() => openActionModal(item)}
-                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                              >
-                                <MdEdit className="text-green-600" size={16} />
-                                Edit Booking
                               </button>
                             </div>
                           )}
@@ -998,159 +932,6 @@ const AllBookings = () => {
                 >
                   <MdEdit size={18} />
                   Edit Booking
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Enhanced Edit Booking Modal */}
-        {showActionModal && selectedBooking && (
-          <div
-            className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4"
-            onClick={closeModals}
-          >
-            <div
-              className="bg-white rounded-2xl w-full max-w-md max-h-[90vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex justify-between items-center p-6 border-b border-gray-200">
-                <h2 className="text-xl font-bold text-gray-800">
-                  Edit Booking
-                </h2>
-                <button
-                  onClick={closeModals}
-                  className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100"
-                >
-                  <MdClose size={20} />
-                </button>
-              </div>
-
-              <div className="p-6 space-y-6">
-                <div className="text-center py-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                    <MdEdit className="text-white text-2xl" />
-                  </div>
-                  <h3 className="font-semibold text-gray-900 text-lg">
-                    Edit Booking for {selectedBooking.fullName || "Guest"}
-                  </h3>
-                  <p className="text-gray-500 text-sm mt-1">
-                    Modify booking details and status
-                  </p>
-                </div>
-
-                {/* Update Message */}
-                {updateMessage.text && (
-                  <div
-                    className={`p-3 rounded-lg text-sm font-medium ${
-                      updateMessage.type === "success"
-                        ? "bg-green-50 text-green-700 border border-green-200"
-                        : "bg-red-50 text-red-700 border border-red-200"
-                    }`}
-                  >
-                    {updateMessage.text}
-                  </div>
-                )}
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Booking Status
-                    </label>
-                    <select
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-gray-50 text-sm"
-                      value={editForm.bookingStatus}
-                      onChange={(e) =>
-                        handleEditChange("bookingStatus", e.target.value)
-                      }
-                    >
-                      {statusOptions.map((status) => (
-                        <option key={status.value} value={status.value}>
-                          {status.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Guest Count
-                    </label>
-                    <input
-                      type="number"
-                      min="1"
-                      max="50"
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-gray-50 text-sm"
-                      value={editForm.totalMembers}
-                      onChange={(e) =>
-                        handleEditChange(
-                          "totalMembers",
-                          parseInt(e.target.value) || 0
-                        )
-                      }
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Total Amount ($)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-gray-50 text-sm"
-                      value={editForm.bookingTotal}
-                      onChange={(e) =>
-                        handleEditChange(
-                          "bookingTotal",
-                          parseFloat(e.target.value) || 0
-                        )
-                      }
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Special Requests
-                    </label>
-                    <textarea
-                      rows="3"
-                      className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-gray-50 text-sm resize-none"
-                      value={editForm.specialRequests}
-                      onChange={(e) =>
-                        handleEditChange("specialRequests", e.target.value)
-                      }
-                      placeholder="Any special requests or notes..."
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-6 border-t border-gray-200 flex gap-3">
-                <button
-                  onClick={closeModals}
-                  disabled={isLoading}
-                  className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={updateBookingDetails}
-                  disabled={isLoading}
-                  className="flex-1 px-4 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-medium disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {isLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                      Updating...
-                    </>
-                  ) : (
-                    <>
-                      <MdCheck size={18} />
-                      Save Changes
-                    </>
-                  )}
                 </button>
               </div>
             </div>
