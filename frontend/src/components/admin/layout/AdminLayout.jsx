@@ -10,7 +10,7 @@ const AdminLayout = () => {
       <Navbar />
       <div className="flex min-h-screen">
         <SideBar />
-        <main className="flex-1 p-4 sm:p-6 bg-gray-100 ">
+        <main className="flex-1 overflow-y-auto  ">
           <Outlet />
         </main>
       </div>

@@ -19,47 +19,46 @@ const SideBar = () => {
     <motion.aside
       initial={{ x: -80, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.5, type: "spring", stiffness: 100 }}
-      className="h-auto w-20 md:w-40 pt-5 text-center bg-white border-r border-gray-200 dark:bg-gray-900 shadow"
+      transition={{ duration: 0.5, ease: "easeOut" }}
+      className="h-auto w-20 md:w-48 bg-white border-r border-blue-100 dark:bg-blue-950 shadow-xl rounded-r-2xl"
     >
-      <div className="h-full flex flex-col items-center py-4">
-        <nav className="flex-1 w-full px-2 space-y-2">
+      <div className="h-full flex flex-col items-center lg:py-12 py-24">
+        <nav className="flex-1 w-full px-3 space-y-3 mt-4">
           {sidebarItems.map((item, index) => {
             const IconComponent = icons[item.icon];
 
             return (
-              <NavLink
+              <motion.div
                 key={index}
-                to={item.link}
-                end
-                className={({ isActive }) =>
-                  `flex items-center gap-3 p-3 rounded-lg transition-all duration-300 ease-in-out
-                 ${
-                   isActive
-                     ? "bg-indigo-100 text-purple-700 font-semibold shadow-sm"
-                     : "text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800"
-                 }`
-                }
+                whileHover={{ scale: 1.05, x: 6 }}
+                transition={{ type: "spring", stiffness: 300 }}
               >
-                {IconComponent && (
-                  <motion.div
-                    whileHover={{ scale: 1.2, rotate: 10 }}
-                    whileTap={{ scale: 0.9 }}
-                    transition={{ type: "spring", stiffness: 300 }}
-                  >
-                    <IconComponent className="text-xl md:text-2xl" />
-                  </motion.div>
-                )}
-                <motion.span
-                  className="hidden md:inline text-base"
-                  whileHover={{ x: 5 }}
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ type: "spring", stiffness: 200 }}
+                <NavLink
+                  end
+                  to={item.link}
+                  className={({ isActive }) =>
+                    `w-full p-3 flex justify-center md:justify-start items-center rounded-lg gap-3 font-medium transition-all duration-300 ${
+                      isActive
+                        ? "bg-blue-50 text-blue-600 font-semibold shadow-sm border border-blue-100"
+                        : "text-gray-600 hover:bg-blue-50 hover:text-blue-500 dark:hover:bg-blue-900"
+                    }`
+                  }
                 >
-                  {item.text}
-                </motion.span>
-              </NavLink>
+                  {({ isActive }) => (
+                    <>
+                      <motion.span
+                        animate={{ rotate: isActive ? 360 : 0 }}
+                        transition={{ duration: 0.6 }}
+                      >
+                        <IconComponent className="text-2xl" />
+                      </motion.span>
+                      <span className="text-base hidden md:flex">
+                        {item.text}
+                      </span>
+                    </>
+                  )}
+                </NavLink>
+              </motion.div>
             );
           })}
         </nav>
