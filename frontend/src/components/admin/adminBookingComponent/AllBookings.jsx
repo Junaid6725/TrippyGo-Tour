@@ -7,9 +7,6 @@ import {
   MdFilterList,
   MdSearch,
   MdClose,
-  MdMoreVert,
-  MdEdit,
-  MdVisibility,
   MdCalendarToday,
   MdPerson,
   MdPhone,
@@ -17,37 +14,27 @@ import {
   MdAccessTime,
   MdCheck,
   MdEmail,
-  MdNotes,
   MdSchedule,
   MdCheckCircle,
   MdCancel,
   MdDoneAll,
-  MdKeyboardArrowDown,
+  MdKeyboardArrowLeft,
+  MdKeyboardArrowRight,
 } from "react-icons/md";
-import { GiConfirmed, GiSandsOfTime } from "react-icons/gi";
-import { RxCross1 } from "react-icons/rx";
 
 const AllBookings = () => {
   const [bookings, setBookings] = useState([]);
-  const [selectedBooking, setSelectedBooking] = useState(null);
-  const [showDetailModal, setShowDetailModal] = useState(false);
-  const [showActionModal, setShowActionModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
   const [showFilters, setShowFilters] = useState(false);
-  const [activeActionMenu, setActiveActionMenu] = useState(null);
-  const [editForm, setEditForm] = useState({
-    bookingStatus: "",
-    totalMembers: 0,
-    bookingTotal: 0,
-    specialRequests: "",
-  });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [updateMessage, setUpdateMessage] = useState({ type: "", text: "" });
-  const [updatingStatus, setUpdatingStatus] = useState(null); // Track which booking is being updated
+  const [updatingStatus, setUpdatingStatus] = useState(null);
+  const usersPerPage = 5;
   const token = useSelector((state) => state.auth.token);
-  const actionMenuRef = useRef(null);
 
   // Enhanced status options with better configuration
   const statusOptions = [
@@ -78,15 +65,6 @@ const AllBookings = () => {
       textColor: "text-red-700",
       borderColor: "border-red-200",
     },
-    // {
-    //   value: "completed",
-    //   label: "Completed",
-    //   color: "blue",
-    //   icon: "✓",
-    //   bgColor: "bg-blue-50",
-    //   textColor: "text-blue-700",
-    //   borderColor: "border-blue-200",
-    // },
   ];
 
   const getStatusConfig = (status) => {
@@ -96,11 +74,11 @@ const AllBookings = () => {
     );
   };
 
-  const fetchBookings = async () => {
+  const fetchBookings = async (page = 1) => {
     try {
       setIsInitialLoading(true);
       const response = await axios.get(
-        `http://localhost:8000/api/get-bookings`,
+        `http://localhost:8000/api/get-bookings?page=${page}&limit=${usersPerPage}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -108,7 +86,9 @@ const AllBookings = () => {
           },
         }
       );
-      setBookings(response.data.booking || []);
+      setBookings(response.data.bookings || []);
+      setTotalPages(response.data.totalPages);
+      setCurrentPage(response.data.page);
     } catch (error) {
       console.error("Error fetching bookings:", error);
       setUpdateMessage({
@@ -121,104 +101,8 @@ const AllBookings = () => {
   };
 
   useEffect(() => {
-    fetchBookings();
-  }, []);
-
-  // Close action menu when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        actionMenuRef.current &&
-        !actionMenuRef.current.contains(event.target)
-      ) {
-        setActiveActionMenu(null);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  // Handle modal outside clicks and ESC key
-  useEffect(() => {
-    const handleEscape = (event) => {
-      if (event.keyCode === 27) {
-        closeModals();
-      }
-    };
-
-    const handleOutsideClick = (event) => {
-      if (
-        (showDetailModal || showActionModal) &&
-        event.target.classList.contains("fixed")
-      ) {
-        closeModals();
-      }
-    };
-
-    document.addEventListener("keydown", handleEscape);
-    document.addEventListener("click", handleOutsideClick);
-
-    return () => {
-      document.removeEventListener("keydown", handleEscape);
-      document.removeEventListener("click", handleOutsideClick);
-    };
-  }, [showDetailModal, showActionModal]);
-
-  // Handle body overflow when modals are open
-  useEffect(() => {
-    if (showDetailModal || showActionModal) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [showDetailModal, showActionModal]);
-
-  const openDetailModal = (booking) => {
-    setSelectedBooking(booking);
-    setShowDetailModal(true);
-    setActiveActionMenu(null);
-  };
-
-  const openActionModal = (booking) => {
-    setSelectedBooking(booking);
-    setEditForm({
-      bookingStatus: booking.bookingStatus || "pending",
-      totalMembers: booking.totalMembers || 0,
-      bookingTotal: booking.bookingTotal || 0,
-      specialRequests: booking.specialRequests || "",
-    });
-    setShowActionModal(true);
-    setActiveActionMenu(null);
-    setUpdateMessage({ type: "", text: "" });
-  };
-
-  const closeModals = () => {
-    setShowDetailModal(false);
-    setShowActionModal(false);
-    setSelectedBooking(null);
-    setEditForm({
-      bookingStatus: "",
-    });
-    setUpdateMessage({ type: "", text: "" });
-  };
-
-  const toggleActionMenu = (bookingId) => {
-    setActiveActionMenu(activeActionMenu === bookingId ? null : bookingId);
-  };
-
-  const handleEditChange = (field, value) => {
-    setEditForm((prev) => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+    fetchBookings(currentPage);
+  }, [currentPage]);
 
   // Quick status update function
   const updateBookingStatus = async (bookingId, newStatus) => {
@@ -237,7 +121,6 @@ const AllBookings = () => {
       );
 
       if (response.data.success) {
-        // Update the local state
         setBookings((prevBookings) =>
           prevBookings.map((booking) =>
             booking._id === bookingId
@@ -246,15 +129,6 @@ const AllBookings = () => {
           )
         );
 
-        // Show success message
-        // setUpdateMessage({
-        //   type: "success",
-        //   text: `Status updated to ${
-        //     newStatus.charAt(0).toUpperCase() + newStatus.slice(1)
-        //   }!`,
-        // });
-
-        // Clear message after 3 seconds
         setTimeout(() => {
           setUpdateMessage({ type: "", text: "" });
         }, 3000);
@@ -300,33 +174,10 @@ const AllBookings = () => {
     }
   };
 
-  const formatDateTime = (dateString) => {
-    try {
-      const date = new Date(dateString);
-      if (isNaN(date.getTime())) return "Invalid Date/Time";
-
-      return date.toLocaleString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      });
-    } catch (error) {
-      return "Invalid Date/Time";
-    }
-  };
-
   // Get status badge style
   const getStatusBadgeStyle = (status) => {
     const config = getStatusConfig(status);
     return `${config.bgColor} ${config.textColor} ${config.borderColor}`;
-  };
-
-  // Get status icon
-  const getStatusIcon = (status) => {
-    return getStatusConfig(status).icon;
   };
 
   // Filter bookings based on search term and status
@@ -342,6 +193,10 @@ const AllBookings = () => {
 
     return matchesSearch && matchesStatus;
   });
+
+  // Calculate pagination data
+  const totalBookingsCount = bookings.length;
+  const currentPageBookings = filteredBookings;
 
   return (
     <div className="p-3 sm:p-4 min-h-screen">
@@ -388,11 +243,8 @@ const AllBookings = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
           {/* Total Bookings Card */}
           <div className="bg-blue-500 rounded-2xl p-6 relative overflow-hidden group transform hover:scale-105 transition-all duration-500 hover:shadow-2xl shadow-lg">
-            {/* Animated background elements */}
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full animate-pulse"></div>
             <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-white/5 rounded-full"></div>
-
-            {/* Glow effect on hover */}
             <div className="absolute inset-0 bg-white/5 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
 
             <div className="flex items-center justify-between relative z-10">
@@ -401,7 +253,7 @@ const AllBookings = () => {
                   Total Bookings
                 </p>
                 <p className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
-                  {bookings.length}
+                  {totalBookingsCount}
                 </p>
                 <div className="flex items-center gap-2">
                   <span className="text-blue-200 text-xs bg-white/10 px-2 py-1 rounded-full">
@@ -416,8 +268,6 @@ const AllBookings = () => {
                 <MdCalendarToday className="text-white text-2xl" />
               </div>
             </div>
-
-            {/* Animated bottom border */}
             <div className="absolute bottom-0 left-0 w-full h-1 bg-white/40 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
           </div>
 
@@ -469,11 +319,8 @@ const AllBookings = () => {
                 key={status.value}
                 className={`${status.color} rounded-2xl p-6 relative overflow-hidden group transform hover:scale-105 transition-all duration-500 hover:shadow-2xl shadow-lg`}
               >
-                {/* Floating background elements */}
                 <div className="absolute -top-12 -right-12 w-32 h-32 bg-white/10 rounded-full"></div>
                 <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-white/5 rounded-full"></div>
-
-                {/* Shine effect on hover */}
                 <div className="absolute inset-0 bg-white/10 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
 
                 <div className="flex items-center justify-between relative z-10">
@@ -484,8 +331,6 @@ const AllBookings = () => {
                     <p className="text-4xl font-bold text-white mb-3 drop-shadow-lg">
                       {count}
                     </p>
-
-                    {/* Enhanced progress bar */}
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
                         <span className="text-white/80 text-xs font-medium">
@@ -503,16 +348,12 @@ const AllBookings = () => {
                       </div>
                     </div>
                   </div>
-
-                  {/* Enhanced icon container */}
                   <div
                     className={`p-4 rounded-2xl backdrop-blur-sm group-hover:scale-110 transition-all duration-300 ml-4 shadow-lg ${status.iconBg}`}
                   >
                     {status.icon}
                   </div>
                 </div>
-
-                {/* Animated border */}
                 <div className="absolute bottom-0 left-0 w-full h-1.5 bg-white/50 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
               </div>
             );
@@ -576,7 +417,7 @@ const AllBookings = () => {
           <div className="flex justify-center items-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           </div>
-        ) : filteredBookings.length === 0 ? (
+        ) : currentPageBookings.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100">
             <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <MdCalendarToday className="text-gray-400 text-3xl" />
@@ -593,349 +434,166 @@ const AllBookings = () => {
             </p>
           </div>
         ) : (
-          <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
-            {/* Responsive Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
-                  <tr>
-                    <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap text-xs sm:text-sm">
-                      GUEST
-                    </th>
-                    <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap text-xs sm:text-sm hidden lg:table-cell">
-                      CONTACT
-                    </th>
-                    <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap text-xs sm:text-sm">
-                      GUESTS
-                    </th>
-                    <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap text-xs sm:text-sm hidden md:table-cell">
-                      DATE & TIME
-                    </th>
-                    <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap text-xs sm:text-sm">
-                      STATUS
-                    </th>
-                    <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap text-xs sm:text-sm">
-                      TOTAL
-                    </th>
-                    <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap text-xs sm:text-sm">
-                      ACTIONS
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {filteredBookings.map((item) => (
-                    <tr
-                      key={item._id}
-                      className="hover:bg-gray-50 transition-all duration-200 group"
-                    >
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="h-10 w-10 flex-shrink-0 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold mr-3 text-sm">
-                            {item.fullName?.charAt(0) || "G"}
-                          </div>
-                          <div>
-                            <div className="font-semibold text-gray-900 text-sm">
-                              {item.fullName || "Guest"}
-                            </div>
-                            <div className="text-xs text-gray-500 lg:hidden mt-1">
-                              {item.phoneNumber || "N/A"}
-                            </div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 text-gray-700 whitespace-nowrap hidden lg:table-cell text-sm">
-                        <div className="flex items-center gap-2">
-                          <MdPhone className="text-gray-400" size={14} />
-                          {item.phoneNumber || "N/A"}
-                        </div>
-                        {item.email && (
-                          <div className="flex items-center gap-2 mt-1">
-                            <MdEmail className="text-gray-400" size={12} />
-                            <span className="text-xs text-gray-500 truncate max-w-[150px]">
-                              {item.email}
-                            </span>
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium border border-blue-200">
-                          <MdPerson size={12} />
-                          {item.totalMembers || 0}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4 text-gray-700 whitespace-nowrap hidden md:table-cell text-sm">
-                        <div className="flex items-center gap-2">
-                          <MdCalendarToday
-                            className="text-gray-400"
-                            size={14}
-                          />
-                          {formatDate(item.createdAt)}
-                        </div>
-                        <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
-                          <MdAccessTime size={12} />
-                          {formatTime(item.createdAt)}
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="relative">
-                          <select
-                            value={item.bookingStatus || "pending"}
-                            onChange={(e) =>
-                              updateBookingStatus(item._id, e.target.value)
-                            }
-                            disabled={updatingStatus === item._id}
-                            className={`appearance-none inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border cursor-pointer transition-all ${getStatusBadgeStyle(
-                              item.bookingStatus
-                            )} ${
-                              updatingStatus === item._id
-                                ? "opacity-50 cursor-not-allowed"
-                                : "hover:opacity-80"
-                            }`}
-                          >
-                            {statusOptions.map((status) => (
-                              <option key={status.value} value={status.value}>
-                                {status.label}
-                              </option>
-                            ))}
-                          </select>
-                          {updatingStatus === item._id && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 rounded-full">
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 font-semibold text-gray-900 whitespace-nowrap text-sm">
-                        <div className="flex items-center gap-1">
-                          <MdAttachMoney className="text-green-600" size={16} />
-                          {item.bookingTotal || 0}
-                        </div>
-                      </td>
-                      <td className="px-4 py-4 whitespace-nowrap">
-                        <div className="relative" ref={actionMenuRef}>
-                          <button
-                            onClick={() => toggleActionMenu(item._id)}
-                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-xl transition-all duration-200"
-                            title="Actions"
-                          >
-                            <MdMoreVert size={18} />
-                          </button>
-
-                          {activeActionMenu === item._id && (
-                            <div className="absolute right-0 top-10 z-10 bg-white rounded-xl shadow-lg border border-gray-200 min-w-32 py-2 transform -translate-x-2">
-                              <button
-                                onClick={() => openDetailModal(item)}
-                                className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                              >
-                                <MdVisibility
-                                  className="text-blue-600"
-                                  size={16}
-                                />
-                                View Details
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </td>
+          <>
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+              {/* Responsive Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gradient-to-r from-gray-50 to-gray-100">
+                    <tr>
+                      <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap text-xs sm:text-sm">
+                        GUEST
+                      </th>
+                      <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap text-xs sm:text-sm hidden lg:table-cell">
+                        CONTACT
+                      </th>
+                      <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap text-xs sm:text-sm">
+                        GUESTS
+                      </th>
+                      <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap text-xs sm:text-sm hidden md:table-cell">
+                        DATE & TIME
+                      </th>
+                      <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap text-xs sm:text-sm">
+                        STATUS
+                      </th>
+                      <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap text-xs sm:text-sm">
+                        TOTAL
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {currentPageBookings.map((item) => (
+                      <tr
+                        key={item._id}
+                        className="hover:bg-gray-50 transition-all duration-200 group"
+                      >
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <div className="h-10 w-10 flex-shrink-0 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl flex items-center justify-center text-white font-bold mr-3 text-sm">
+                              {item.fullName?.charAt(0) || "G"}
+                            </div>
+                            <div>
+                              <div className="font-semibold text-gray-900 text-sm">
+                                {item.fullName || "Guest"}
+                              </div>
+                              <div className="text-xs text-gray-500 lg:hidden mt-1">
+                                {item.phoneNumber || "N/A"}
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 text-gray-700 whitespace-nowrap hidden lg:table-cell text-sm">
+                          <div className="flex items-center gap-2">
+                            <MdPhone className="text-gray-400" size={14} />
+                            {item.phoneNumber || "N/A"}
+                          </div>
+                          {item.email && (
+                            <div className="flex items-center gap-2 mt-1">
+                              <MdEmail className="text-gray-400" size={12} />
+                              <span className="text-xs text-gray-500 truncate max-w-[150px]">
+                                {item.email}
+                              </span>
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-full text-xs font-medium border border-blue-200">
+                            <MdPerson size={12} />
+                            {item.totalMembers || 0}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 text-gray-700 whitespace-nowrap hidden md:table-cell text-sm">
+                          <div className="flex items-center gap-2">
+                            <MdCalendarToday
+                              className="text-gray-400"
+                              size={14}
+                            />
+                            {formatDate(item.createdAt)}
+                          </div>
+                          <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                            <MdAccessTime size={12} />
+                            {formatTime(item.createdAt)}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <div className="relative">
+                            <select
+                              value={item.bookingStatus || "pending"}
+                              onChange={(e) =>
+                                updateBookingStatus(item._id, e.target.value)
+                              }
+                              disabled={updatingStatus === item._id}
+                              className={`appearance-none inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border cursor-pointer transition-all ${getStatusBadgeStyle(
+                                item.bookingStatus
+                              )} ${
+                                updatingStatus === item._id
+                                  ? "opacity-50 cursor-not-allowed"
+                                  : "hover:opacity-80"
+                              }`}
+                            >
+                              {statusOptions.map((status) => (
+                                <option key={status.value} value={status.value}>
+                                  {status.label}
+                                </option>
+                              ))}
+                            </select>
+                            {updatingStatus === item._id && (
+                              <div className="absolute inset-0 flex items-center justify-center bg-white bg-opacity-80 rounded-full">
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                              </div>
+                            )}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 font-semibold text-gray-900 whitespace-nowrap text-sm">
+                          <div className="flex items-center gap-1">
+                            <MdAttachMoney
+                              className="text-green-600"
+                              size={16}
+                            />
+                            {item.bookingTotal || 0}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination Component */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between p-4 border-t border-gray-100">
+                  <button
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="flex items-center gap-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <MdKeyboardArrowLeft size={18} />
+                    Previous
+                  </button>
+                  <span className="text-sm text-gray-600">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <button
+                    onClick={() =>
+                      setCurrentPage((p) => Math.min(totalPages, p + 1))
+                    }
+                    disabled={currentPage === totalPages}
+                    className="flex items-center gap-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Next
+                    <MdKeyboardArrowRight size={18} />
+                  </button>
+                </div>
+              )}
             </div>
-          </div>
-        )}
 
-        <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl text-sm text-blue-700 lg:hidden border border-blue-100">
-          <p className="flex items-center justify-center gap-2">
-            <span>💡</span>
-            Swipe horizontally to view all table columns
-          </p>
-        </div>
-
-        {/* Enhanced Booking Detail Modal */}
-        {showDetailModal && selectedBooking && (
-          <div
-            className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-3 sm:p-4"
-            onClick={closeModals}
-          >
-            <div
-              className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex justify-between items-center p-6 border-b border-gray-200">
-                <h2 className="text-xl font-bold text-gray-800">
-                  Booking Details
-                </h2>
-                <button
-                  onClick={closeModals}
-                  className="text-gray-500 hover:text-gray-700 p-2 rounded-lg hover:bg-gray-100"
-                >
-                  <MdClose size={20} />
-                </button>
-              </div>
-
-              <div className="p-6 space-y-6">
-                {/* Guest Information */}
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-100">
-                  <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
-                    <MdPerson className="text-blue-600" size={18} />
-                    Guest Information
-                  </h3>
-                  <div className="flex items-center">
-                    <div className="h-16 w-16 flex-shrink-0 bg-gradient-to-br from-violet-500 to-blue-500 rounded-xl flex items-center justify-center text-white font-bold text-xl mr-4">
-                      {selectedBooking.fullName?.charAt(0) || "G"}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-gray-900 text-lg">
-                        {selectedBooking.fullName || "Guest"}
-                      </h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-                        <p className="text-sm text-gray-600 flex items-center gap-2">
-                          <MdPhone size={14} />
-                          {selectedBooking.phoneNumber || "N/A"}
-                        </p>
-                        {selectedBooking.email && (
-                          <p className="text-sm text-gray-600 flex items-center gap-2">
-                            <MdEmail size={14} />
-                            {selectedBooking.email}
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Booking Details Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <p className="text-xs text-gray-500 font-medium mb-2">
-                      Guest Size
-                    </p>
-                    <p className="font-semibold text-sm flex items-center gap-2">
-                      <MdPerson size={16} />
-                      {selectedBooking.totalMembers || 0} people
-                    </p>
-                  </div>
-
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <p className="text-xs text-gray-500 font-medium mb-2">
-                      Total Amount
-                    </p>
-                    <p className="font-semibold text-sm flex items-center gap-2">
-                      <MdAttachMoney size={16} />$
-                      {selectedBooking.bookingTotal || 0}
-                    </p>
-                  </div>
-
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <p className="text-xs text-gray-500 font-medium mb-2">
-                      Booking Date
-                    </p>
-                    <p className="font-semibold text-sm flex items-center gap-2">
-                      <MdCalendarToday size={16} />
-                      {formatDate(selectedBooking.createdAt)}
-                    </p>
-                  </div>
-
-                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <p className="text-xs text-gray-500 font-medium mb-2">
-                      Booking Time
-                    </p>
-                    <p className="font-semibold text-sm flex items-center gap-2">
-                      <MdAccessTime size={16} />
-                      {formatTime(selectedBooking.createdAt)}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Status Section */}
-                <div className="bg-gray-50 p-4 rounded-xl border border-gray-200">
-                  <p className="text-xs text-gray-500 font-medium mb-2">
-                    Current Status
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span
-                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium border ${getStatusBadgeStyle(
-                        selectedBooking.bookingStatus
-                      )}`}
-                    >
-                      <span className="text-sm">
-                        {getStatusIcon(selectedBooking.bookingStatus)}
-                      </span>
-                      {selectedBooking.bookingStatus?.charAt(0).toUpperCase() +
-                        selectedBooking.bookingStatus?.slice(1) || "Pending"}
-                    </span>
-                    <button
-                      onClick={() => {
-                        setShowDetailModal(false);
-                        setTimeout(() => openActionModal(selectedBooking), 300);
-                      }}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
-                    >
-                      Change Status
-                    </button>
-                  </div>
-                </div>
-
-                {/* Special Requests */}
-                {selectedBooking.specialRequests && (
-                  <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-200">
-                    <p className="text-xs text-yellow-700 font-medium mb-2 flex items-center gap-2">
-                      <MdNotes size={14} />
-                      Special Requests
-                    </p>
-                    <p className="text-sm text-yellow-800">
-                      {selectedBooking.specialRequests}
-                    </p>
-                  </div>
-                )}
-
-                {/* Booking ID */}
-                <div className="pt-4 border-t border-gray-200">
-                  <p className="text-xs text-gray-500 font-medium mb-2">
-                    Booking ID
-                  </p>
-                  <p className="font-mono text-xs text-gray-700 break-all bg-gray-50 p-3 rounded-lg">
-                    {selectedBooking._id}
-                  </p>
-                </div>
-
-                {/* Additional Information */}
-                <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
-                  <p className="text-xs text-blue-700 font-medium mb-1">
-                    Additional Information
-                  </p>
-                  <p className="text-xs text-blue-600">
-                    Created: {formatDateTime(selectedBooking.createdAt)}
-                    {selectedBooking.updatedAt &&
-                      selectedBooking.updatedAt !== selectedBooking.createdAt &&
-                      ` • Updated: ${formatDateTime(
-                        selectedBooking.updatedAt
-                      )}`}
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-6 border-t border-gray-200 flex gap-3">
-                <button
-                  onClick={closeModals}
-                  className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-xl hover:bg-gray-50 transition-all duration-200 font-medium"
-                >
-                  Close
-                </button>
-                <button
-                  onClick={() => {
-                    setShowDetailModal(false);
-                    setTimeout(() => openActionModal(selectedBooking), 300);
-                  }}
-                  className="flex-1 px-4 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-all duration-200 font-medium flex items-center justify-center gap-2"
-                >
-                  <MdEdit size={18} />
-                  Edit Booking
-                </button>
-              </div>
+            <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl text-sm text-blue-700 lg:hidden border border-blue-100">
+              <p className="flex items-center justify-center gap-2">
+                <span>💡</span>
+                Swipe horizontally to view all table columns
+              </p>
             </div>
-          </div>
+          </>
         )}
       </div>
     </div>

@@ -4,7 +4,7 @@ import Profile from "../models/profileModel.js";
 export const getAllUsers = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 6;
+    const limit = parseInt(req.query.limit) || 5;
     const skip = (page - 1) * limit;
 
     const total = await User.countDocuments({ role: "user" });
