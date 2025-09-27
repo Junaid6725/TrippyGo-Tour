@@ -71,13 +71,27 @@ export const createBooking = async (req, res) => {
 
 export const getBookings = async (req, res) => {
   try {
-    const booking = await Booking.find();
-    if (!booking) {
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+
+    const bookings = await Booking.find().skip(skip).limit(limit);
+
+    const total = await Booking.countDocuments();
+
+    if (!bookings || bookings.length === 0) {
       return res
         .status(404)
         .json({ success: false, message: "Bookings Not Found!" });
     }
-    return res.status(200).json({ success: true, booking });
+    return res.status(200).json({
+      success: true,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      bookings,
+    });
   } catch (error) {
     return res.status(500).json({ success: false, message: "Server Error" });
   }
@@ -85,16 +99,39 @@ export const getBookings = async (req, res) => {
 
 export const getUserBookings = async (req, res) => {
   try {
-    const user = req.user?.id;
-    const booking = await Booking.find({ userId: user }).populate("tourId");
-    if (!booking) {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "Unauthorized" });
+    }
+
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 5;
+    const skip = (page - 1) * limit;
+
+    const total = await Booking.countDocuments({ userId });
+
+    const bookings = await Booking.find({ userId })
+      .populate("tourId")
+      .skip(skip)
+      .limit(limit);
+
+    if (bookings.length === 0) {
       return res
         .status(404)
-        .json({ success: false, message: "NO Booking Found!" });
+        .json({ success: false, message: "No Bookings Found!" });
     }
-    return res.status(200).json({ success: true, booking });
+
+    return res.status(200).json({
+      success: true,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      bookings,
+    });
   } catch (error) {
-    return res.status(500).json({ message: "Server Error" });
+    console.error("Error in getUserBookings:", error);
+    return res.status(500).json({ success: false, message: "Server Error" });
   }
 };
 

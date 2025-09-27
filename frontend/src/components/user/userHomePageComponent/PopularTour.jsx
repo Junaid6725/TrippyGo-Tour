@@ -11,7 +11,9 @@ export default function PopularTour() {
 
   const fetchTours = async () => {
     try {
-      const response = await axios.get(`http://localhost:8000/api/get-tours`);
+      const response = await axios.get(
+        `http://localhost:8000/api/get-tours?page=1&limit=4`
+      );
       setTours(response.data.tours || []);
     } catch (error) {
       console.error("Failed to fetch tours", error);
