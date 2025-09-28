@@ -164,3 +164,27 @@ export const getTour = async (req, res) => {
     return res.status(500).json({ message: "Failed to fetch tour" });
   }
 };
+
+export const searchTour = async (req, res) => {
+  try {
+    const { location, maxPrice, minPrice, groupSize } = req.query;
+    let query = {};
+
+    if (location) {
+      query.location = { $regex: location, $options: "i" };
+    }
+    if (minPrice || maxPrice) {
+      query.price = {};
+      if (minPrice) query.price.$gte = Number(minPrice);
+      if (maxPrice) query.price.$lte = Number(maxPrice);
+    }
+    if (groupSize) {
+      query.groupSize = { $gte: Number(groupSize) };
+    }
+    const tours = await Tour.find(query);
+    res.json({ success: true, tours });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
