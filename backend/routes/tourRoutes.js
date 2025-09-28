@@ -4,6 +4,7 @@ import {
   deleteTour,
   getAllTours,
   getTour,
+  searchTour,
   updatedTour,
 } from "../controllers/tourController.js";
 import { adminMiddleware } from "../middlewares/roleMiddleware.js";
@@ -34,5 +35,7 @@ router.get("/get-tours", getAllTours);
 router.get("/get-tour/:id", getTour);
 
 router.get("/destination", getToursByLocation);
+
+router.get("/search-tour", searchTour);
 
 export default router;
