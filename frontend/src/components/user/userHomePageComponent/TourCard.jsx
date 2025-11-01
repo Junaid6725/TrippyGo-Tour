@@ -15,8 +15,8 @@ const TourCard = ({ tour }) => {
     >
       <div className="relative overflow-hidden h-48 sm:h-56 md:h-60 rounded-t-xl">
         <motion.img
-          src={tour.imgUrl}
-          alt={tour.imgAlt}
+          src={tour.tourImg}
+          alt={tour.title}
           className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           whileHover={{ scale: 1.08 }}
           transition={{ duration: 0.6, ease: "easeOut" }}

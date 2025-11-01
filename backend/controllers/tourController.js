@@ -4,30 +4,30 @@ export const createTour = async (req, res) => {
   const {
     title,
     location,
+    destinationId,
     expenditure,
     description,
     groupSize,
     hotelDetail,
     distance,
-    imgAlt,
     duration,
     included,
     excluded,
   } = req.body;
 
-  const imgUrl = req.file?.path;
+  const tourImg = req.file?.path;
 
   try {
     if (
       !title ||
+      !destinationId ||
       !location ||
       !expenditure ||
       !description ||
       !groupSize ||
       !hotelDetail ||
       !distance ||
-      !imgUrl ||
-      !imgAlt ||
+      !tourImg ||
       !duration ||
       !included ||
       !excluded
@@ -36,18 +36,20 @@ export const createTour = async (req, res) => {
         .status(400)
         .json({ success: false, message: "All fields are required!" });
     }
+    const parsedIncluded = JSON.parse(included || "[]");
+    const parsedExcluded = JSON.parse(excluded || "[]");
 
     const newTour = new Tour({
       title,
-      imgUrl,
-      imgAlt,
+      tourImg,
+      destinationId,
       description,
       expenditure,
       duration,
       distance,
       location,
-      included,
-      excluded,
+      included: parsedIncluded,
+      excluded: parsedExcluded,
       groupSize,
       hotelDetail,
     });
@@ -63,40 +65,40 @@ export const updatedTour = async (req, res) => {
   const { id } = req.params;
   const {
     title,
+    destinationId,
     location,
     expenditure,
     description,
     groupSize,
     hotelDetail,
     distance,
-    imgAlt,
     duration,
   } = req.body;
 
   const included = req.body.included ? JSON.parse(req.body.included) : [];
   const excluded = req.body.excluded ? JSON.parse(req.body.excluded) : [];
 
-  let imgUrl;
+  let tourImg;
   if (req.file) {
-    imgUrl = req.file.path;
+    tourImg = req.file.path;
   }
 
   try {
     const updateData = {
       title,
+      destinationId,
       location,
       expenditure,
       description,
       groupSize,
       hotelDetail,
       distance,
-      imgAlt,
       duration,
       included,
       excluded,
     };
 
-    if (imgUrl) updateData.imgUrl = imgUrl;
+    if (tourImg) updateData.tourImg = tourImg;
 
     const updateTour = await Tour.findByIdAndUpdate(id, updateData, {
       new: true,
@@ -133,8 +135,20 @@ export const getAllTours = async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 4;
     const skip = (page - 1) * limit;
-    const allTours = await Tour.find().skip(skip).limit(limit);
-    const total = await Tour.countDocuments();
+    const search = req.query.search || "";
+
+    const searchQuery = search
+      ? {
+          $or: [
+            { title: { $regex: search, $options: "i" } },
+            { location: { $regex: search, $options: "i" } },
+          ],
+        }
+      : {};
+
+    const total = await Tour.countDocuments(searchQuery);
+    const allTours = await Tour.find(searchQuery).skip(skip).limit(limit);
+
     if (!allTours || allTours.length === 0) {
       return res.status(404).json({ message: "Tours Not Found" });
     }
@@ -155,7 +169,7 @@ export const getTour = async (req, res) => {
   const { id } = req.params;
 
   try {
-    const singleTour = await Tour.findById(id);
+    const singleTour = await Tour.findById(id).populate("destinationId");
     if (!singleTour) {
       return res.status(404).json({ message: "Tour not found" });
     }
@@ -174,9 +188,9 @@ export const searchTour = async (req, res) => {
       query.location = { $regex: location, $options: "i" };
     }
     if (minPrice || maxPrice) {
-      query.price = {};
-      if (minPrice) query.price.$gte = Number(minPrice);
-      if (maxPrice) query.price.$lte = Number(maxPrice);
+      query.expenditure = {};
+      if (minPrice) query.expenditure.$gte = Number(minPrice);
+      if (maxPrice) query.expenditure.$lte = Number(maxPrice);
     }
     if (groupSize) {
       query.groupSize = { $gte: Number(groupSize) };
@@ -186,5 +200,42 @@ export const searchTour = async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
+
+export const getToursByDestination = async (req, res) => {
+  try {
+    const { destinationId } = req.params;
+
+    // Basic validation
+    if (!destinationId) {
+      return res.status(400).json({
+        success: false,
+        message: "Destination ID is required",
+      });
+    }
+
+    // Fetch tours with destination populated
+    const tours = await Tour.find({ destination: destinationId })
+      .populate("destination", "name image")
+      .sort({ createdAt: -1 });
+
+    if (!tours.length) {
+      return res.status(404).json({
+        success: false,
+        message: "No tours found for this destination",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      count: tours.length,
+      tours,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Internal Server Error",
+    });
   }
 };

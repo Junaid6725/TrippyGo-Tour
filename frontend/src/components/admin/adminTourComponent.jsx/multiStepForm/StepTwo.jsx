@@ -3,8 +3,8 @@ import React from "react";
 const StepTwo = ({ register, errors }) => {
   return (
     <>
-     
       <div className="flex flex-col gap-5 p-6 bg-white rounded-2xl shadow-md w-full">
+        {/* 💰 Expenditure */}
         <div className="w-full">
           <label className="block text-gray-700 font-medium mb-1">
             Expenditure
@@ -24,12 +24,13 @@ const StepTwo = ({ register, errors }) => {
           )}
         </div>
 
+        {/* ⏱️ Duration */}
         <div className="w-full">
           <label className="block text-gray-700 font-medium mb-1">
             Duration
           </label>
           <input
-            type="text"
+            type="number"
             placeholder="e.g. 5 Days"
             {...register("duration", { required: "Duration is required" })}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
@@ -41,6 +42,7 @@ const StepTwo = ({ register, errors }) => {
           )}
         </div>
 
+        {/* 📏 Distance */}
         <div className="w-full">
           <label className="block text-gray-700 font-medium mb-1">
             Distance
@@ -58,6 +60,7 @@ const StepTwo = ({ register, errors }) => {
           )}
         </div>
 
+        {/* 📍 Location */}
         <div className="w-full">
           <label className="block text-gray-700 font-medium mb-1">
             Location

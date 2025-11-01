@@ -20,6 +20,9 @@ import {
   FaChevronLeft,
   FaChevronRight,
 } from "react-icons/fa";
+import useDebounce from "../../../hooks/useDebounce";
+import SubtleSpinner from "./../../user/shared/SubtleSpinner";
+import Pagination from "../../user/shared/Pagination";
 
 const AllTours = () => {
   const token = useSelector((state) => state.auth.token);
@@ -28,18 +31,20 @@ const AllTours = () => {
   const [loading, setLoading] = useState(true);
   const [activeMenu, setActiveMenu] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const debouncedSearch = useDebounce(searchTerm, 500);
+  const [totalTours, setTotalTours] = useState("");
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const usersPerPage = 5;
+  const toursPerPage = 5;
 
   // Fetch tours from backend with pagination
   const fetchTour = async () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `http://localhost:8000/api/get-tours?page=${currentPage}&limit=${usersPerPage}&search=${searchTerm}`,
+        `http://localhost:8000/api/get-tours?page=${currentPage}&limit=${toursPerPage}&search=${debouncedSearch}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -47,9 +52,11 @@ const AllTours = () => {
 
       setTours(response.data.tours || []);
       setTotalPages(response.data.totalPages || 1);
+      setTotalTours(response.data.total || 0);
     } catch (error) {
       console.log(error);
-      toast.error("Failed to fetch tours");
+      setTours([]);
+      toast.error(error.response?.data?.message || "Something went wrong!");
     } finally {
       setLoading(false);
     }
@@ -57,7 +64,7 @@ const AllTours = () => {
 
   useEffect(() => {
     fetchTour();
-  }, [currentPage, searchTerm]);
+  }, [currentPage, debouncedSearch]);
 
   // Delete Tour
   const handleDelete = async (id, title) => {
@@ -107,7 +114,7 @@ const AllTours = () => {
     };
   }, []);
 
-  if (loading) {
+  if (loading && tours.length === 0) {
     return (
       <div className="flex justify-center items-center h-screen text-lg font-semibold text-gray-600 dark:text-gray-300">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mr-3"></div>
@@ -117,7 +124,7 @@ const AllTours = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-blue-900/20 p-4 sm:p-6">
+    <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header Section */}
         <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-8 gap-6">
@@ -138,37 +145,32 @@ const AllTours = () => {
           </Link>
         </div>
 
-        {/* Search and Filter Section */}
-        <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg p-6 mb-8 border border-blue-100/50 dark:border-blue-900/50">
-          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-            <div className="relative flex-1 w-full">
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                <FaSearch className="text-blue-400 text-lg" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search tours by title or location..."
-                className="pl-12 pr-4 py-3 w-full border border-blue-200 dark:border-blue-700 rounded-xl bg-white/50 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                value={searchTerm}
-                onChange={(e) => {
-                  setSearchTerm(e.target.value);
-                  setCurrentPage(1);
-                }}
-              />
+        {/* Search Section */}
+        <div className="mb-6">
+          <div className="relative flex-1 w-full">
+            {/* Search Icon */}
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <FaSearch className="text-blue-400 text-lg" />
             </div>
-            <div className="flex gap-3 w-full lg:w-auto">
-              <button className="px-6 py-3 border border-blue-200 dark:border-blue-700 rounded-xl flex items-center gap-2 text-blue-600 dark:text-blue-400 bg-blue-50/50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-800/30 transition-colors font-medium">
-                <FaFilter className="text-sm" />
-                <span>Filters</span>
-              </button>
-              <button className="px-6 py-3 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors font-medium">
-                Export
-              </button>
-            </div>
+
+            {/* Input Field */}
+            <input
+              type="text"
+              placeholder="Search tours by title or location..."
+              className="pl-12 pr-10 py-3 w-full border border-blue-200 dark:border-blue-700 rounded-xl bg-white/50 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 transition-all duration-200 focus:outline-none"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
+
+            {/* Subtle Spinner */}
+            {loading && <SubtleSpinner />}
           </div>
         </div>
 
-        {/* Tours Table - All columns visible on all screens */}
+        {/* Tours Table - Responsive for all screens */}
         <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg overflow-hidden border border-blue-100/50 dark:border-blue-900/50">
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1000px] lg:min-w-full">
@@ -205,7 +207,7 @@ const AllTours = () => {
                       <td className="p-4">
                         <div className="flex items-center space-x-3">
                           <img
-                            src={data.imgUrl || "/api/placeholder/80/60"}
+                            src={data.tourImg || "/api/placeholder/80/60"}
                             alt={data.title}
                             className="w-12 h-12 sm:w-16 sm:h-12 object-cover rounded-lg shadow-md border-2 border-blue-200 group-hover:border-blue-300 transition-colors"
                           />
@@ -311,45 +313,73 @@ const AllTours = () => {
                 ) : (
                   <tr>
                     <td colSpan="6" className="text-center py-12">
-                      <div className="flex flex-col items-center text-gray-400 dark:text-gray-500">
-                        <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-2xl mb-4">
-                          <svg
-                            className="w-16 h-16 mx-auto text-blue-300"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={1.5}
-                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                            />
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={1.5}
-                              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                            />
-                          </svg>
+                      {searchTerm ? (
+                        // When user searched and found nothing
+                        <div className="flex flex-col items-center text-gray-500 dark:text-gray-400">
+                          <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-2xl mb-4">
+                            <svg
+                              className="w-16 h-16 mx-auto text-blue-300"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1.5}
+                                d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                          </div>
+                          <p className="text-lg font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                            No matching results found
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            We couldn’t find any tours for “
+                            <span className="font-semibold text-blue-500">
+                              {searchTerm}
+                            </span>
+                            ”. Try different keywords or filters.
+                          </p>
                         </div>
-                        <p className="text-lg font-medium mb-2 text-gray-600 dark:text-gray-400">
-                          No Tours Found
-                        </p>
-                        <p className="text-sm max-w-sm text-center">
-                          {searchTerm
-                            ? "No tours match your search criteria. Try different keywords."
-                            : "Get started by creating your first tour!"}
-                        </p>
-                        {!searchTerm && (
+                      ) : (
+                        // Default empty state (no tours at all)
+                        <div className="flex flex-col items-center text-gray-400 dark:text-gray-500">
+                          <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-2xl mb-4">
+                            <svg
+                              className="w-16 h-16 mx-auto text-blue-300"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1.5}
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                              />
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={1.5}
+                                d="M15 11a3 3 0 11-6 0 3 3 0z"
+                              />
+                            </svg>
+                          </div>
+                          <p className="text-lg font-medium mb-2 text-gray-600 dark:text-gray-400">
+                            No Tours Found
+                          </p>
+                          <p className="text-sm max-w-sm text-center">
+                            Get started by creating your first tour!
+                          </p>
                           <Link
                             to="/admin-dashboard/add-tour"
                             className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors text-sm"
                           >
                             Create Tour
                           </Link>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 )}
@@ -360,63 +390,14 @@ const AllTours = () => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex flex-col sm:flex-row justify-between items-center mt-8 p-4 sm:p-6 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-blue-100/50 dark:border-blue-900/50">
-            {/* Results Count */}
-            <div className="text-sm text-blue-600 dark:text-blue-400 font-medium mb-4 sm:mb-0">
-              Showing <span className="font-bold">{tours.length}</span> of{" "}
-              <span className="font-bold">{tours.length}</span> tours
-            </div>
-
-            {/* Pagination Controls */}
-            <div className="flex items-center space-x-2 sm:space-x-3 mb-4 sm:mb-0">
-              <button
-                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                disabled={currentPage === 1}
-                className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700 rounded-lg sm:rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
-              >
-                <FaChevronLeft className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
-                <span className="hidden sm:inline">Previous</span>
-                <span className="sm:hidden">Prev</span>
-              </button>
-
-              {/* Page Numbers */}
-              <div className="flex items-center space-x-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                  (number) => (
-                    <button
-                      key={number}
-                      onClick={() => setCurrentPage(number)}
-                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 ${
-                        currentPage === number
-                          ? "bg-blue-500 text-white shadow-md scale-105"
-                          : "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 dark:hover:bg-blue-900/30"
-                      }`}
-                    >
-                      {number}
-                    </button>
-                  )
-                )}
-              </div>
-
-              <button
-                onClick={() =>
-                  setCurrentPage((p) => Math.min(totalPages, p + 1))
-                }
-                disabled={currentPage === totalPages}
-                className="flex items-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-blue-600 dark:text-blue-400 bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700 rounded-lg sm:rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-sm hover:shadow-md"
-              >
-                <span className="hidden sm:inline">Next</span>
-                <span className="sm:hidden">Next</span>
-                <FaChevronRight className="w-3 h-3 sm:w-4 sm:h-4 ml-1 sm:ml-2" />
-              </button>
-            </div>
-
-            {/* Page Info */}
-            <div className="text-sm text-blue-600 dark:text-blue-400 font-medium">
-              Page <span className="font-bold">{currentPage}</span> of{" "}
-              <span className="font-bold">{totalPages}</span>
-            </div>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalTours}
+            itemsPerPage={toursPerPage}
+            currentItems={tours}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
         )}
       </div>
     </div>

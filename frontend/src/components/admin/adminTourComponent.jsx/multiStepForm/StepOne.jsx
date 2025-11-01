@@ -1,6 +1,6 @@
 import React from "react";
 
-const StepOne = ({ register, errors }) => {
+const StepOne = ({ register, errors, destinations = [] }) => {
   return (
     <div className="flex flex-col gap-5 p-6 bg-white rounded-2xl shadow-md w-full">
       <div>
@@ -20,34 +20,46 @@ const StepOne = ({ register, errors }) => {
 
       <div>
         <label className="block text-gray-700 font-medium mb-1">
-          Image URL
+          Tour Image
         </label>
         <input
           type="file"
           accept="image/*"
           placeholder="Enter image URL"
-          {...register("tourImage", { required: "Image URL is required" })}
+          {...register("tourImg", { required: "Tour Image is required" })}
           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
         />
-        {errors.tourImage && (
-          <p className="text-red-500 text-sm mt-1">
-            {errors.tourImage.message}
-          </p>
+        {errors.tourImg && (
+          <p className="text-red-500 text-sm mt-1">{errors.tourImg.message}</p>
         )}
       </div>
 
-      <div>
+      {/* ✅ Destination Select Dropdown */}
+      <div className="w-full">
         <label className="block text-gray-700 font-medium mb-1">
-          Image Alt Text
+          Destination
         </label>
-        <input
-          type="text"
-          placeholder="Enter image alt text"
-          {...register("imgAlt", { required: "Image Alt Text is required" })}
-          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition"
-        />
-        {errors.imgAlt && (
-          <p className="text-red-500 text-sm mt-1">{errors.imgAlt.message}</p>
+        <select
+          {...register("destinationId", {
+            required: "Destination is required",
+          })}
+          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition bg-white"
+        >
+          <option value="">Select Destination</option>
+          {destinations.length > 0 ? (
+            destinations.map((dest) => (
+              <option key={dest._id} value={dest._id}>
+                {dest.name}
+              </option>
+            ))
+          ) : (
+            <option disabled>Loading destinations...</option>
+          )}
+        </select>
+        {errors.destinationId && (
+          <p className="text-red-500 text-sm mt-1">
+            {errors.destinationId.message}
+          </p>
         )}
       </div>
 
