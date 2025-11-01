@@ -27,7 +27,21 @@ const bookingSchema = new mongoose.Schema(
     bookingDate: {
       type: Date,
       default: Date.now,
+    },
+    endDate: {
+      type: Date,
       required: true,
+    },
+    startDate: {
+      type: Date,
+      required: true,
+    },
+    completionDate: {
+      type: Date,
+    },
+    autoCompleted: {
+      type: Boolean,
+      default: false,
     },
     totalMembers: {
       type: Number,
@@ -40,9 +54,19 @@ const bookingSchema = new mongoose.Schema(
     },
     bookingStatus: {
       type: String,
-      enum: ["pending", "confirmed", "rejected"],
+      enum: [
+        "pending",
+        "confirmed",
+        "rejected",
+        "cancelled",
+        "expired",
+        "completed",
+      ],
       default: "pending",
       required: true,
+    },
+    cancelledAt: {
+      type: Date,
     },
   },
   { timestamps: true }

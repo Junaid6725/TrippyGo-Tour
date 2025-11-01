@@ -11,6 +11,7 @@ import { toast } from "react-toastify";
 const EditTour = () => {
   const [count, setCount] = useState(1);
   const [tour, setTour] = useState(null);
+  const [destinations, setDestinations] = useState([]);
 
   const {
     register,
@@ -23,6 +24,20 @@ const EditTour = () => {
   const navigate = useNavigate();
   const token = useSelector((state) => state.auth.token);
   const { id } = useParams();
+
+  const getAllDestinations = async () => {
+    try {
+      const res = await axios.get("http://localhost:8000/api/get-destinations");
+      setDestinations(res.data.destinations || []);
+    } catch (err) {
+      console.error("Error fetching destinations:", err);
+    }
+  };
+
+  useEffect(() => {
+    if (!destinations.length) getAllDestinations();
+    if (id) getTourById();
+  }, [id]);
 
   // ✅ Fetch tour by ID
   const getTourById = async () => {
@@ -46,23 +61,24 @@ const EditTour = () => {
         }
 
         setTour(tourData);
-        reset(tourData);
+        reset({
+          ...tourData,
+          destinationId:
+            tourData.destinationId?._id || tourData.destinationId || "",
+        });
       }
     } catch (error) {
       console.log("Error fetching tour:", error);
     }
   };
 
-  useEffect(() => {
-    if (id) getTourById();
-  }, [id]);
-
   // ✅ Submit updated tour
   const submitData = async (data) => {
     const formData = new FormData();
     try {
+      console.log("DESTINATION ID:", data.destinationId);
       formData.append("title", data.title);
-      formData.append("imgAlt", data.imgAlt);
+      formData.append("destinationId", data.destinationId);
       formData.append("description", data.description);
       formData.append("expenditure", data.expenditure);
       formData.append("duration", data.duration);
@@ -82,8 +98,8 @@ const EditTour = () => {
       formData.append("excluded", JSON.stringify(exclude));
       formData.append("hotelDetail", data.hotelDetail);
 
-      if (data.tourImage && data.tourImage[0]) {
-        formData.append("tourImage", data.tourImage[0]);
+      if (data.tourImg && data.tourImg[0]) {
+        formData.append("tourImg", data.tourImg[0]);
       }
 
       const response = await axios.put(
@@ -110,7 +126,12 @@ const EditTour = () => {
   const handlecount = async () => {
     let valid = false;
     if (count === 1) {
-      valid = await trigger(["title", "imgUrl", "imgAlt", "description"]);
+      valid = await trigger([
+        "title",
+        "tourImg",
+        "destinationId",
+        "description",
+      ]);
     } else if (count === 2) {
       valid = await trigger([
         "expenditure",
@@ -137,7 +158,13 @@ const EditTour = () => {
           Edit Tour Package
         </h2>
 
-        {count === 1 && <StepOne register={register} errors={errors} />}
+        {count === 1 && (
+          <StepOne
+            register={register}
+            errors={errors}
+            destinations={destinations}
+          />
+        )}
         {count === 2 && <StepTwo register={register} errors={errors} />}
         {count === 3 && <StepThree register={register} errors={errors} />}
 

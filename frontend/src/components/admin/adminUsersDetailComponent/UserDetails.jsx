@@ -12,27 +12,34 @@ import {
   MdEmail,
   MdPhone,
   MdVisibility,
+  MdPeople,
 } from "react-icons/md";
 import Swal from "sweetalert2";
 import { toast } from "react-toastify";
+import useDebounce from "../../../hooks/useDebounce";
+import { FaChevronLeft, FaChevronRight, FaSearch } from "react-icons/fa";
+import SubtleSpinner from "../../user/shared/SubtleSpinner";
+import Pagination from "../../user/shared/Pagination";
 
 const UserDetails = () => {
   const [users, setUsers] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [totalUsers, setTotalUsers] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [actionMenuOpen, setActionMenuOpen] = useState(null);
 
+  const debouncedSearch = useDebounce(searchTerm, 500);
   const usersPerPage = 5;
   const token = useSelector((state) => state.auth.token);
 
   // Fetch users from backend with pagination
-  const fetchUsers = async (page = 1) => {
+  const fetchUsers = async () => {
     try {
       setIsLoading(true);
       const response = await axios.get(
-        `http://localhost:8000/api/get-users?page=${page}&limit=${usersPerPage}`,
+        `http://localhost:8000/api/get-users?page=${currentPage}&limit=${usersPerPage}&search=${debouncedSearch}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
@@ -40,6 +47,7 @@ const UserDetails = () => {
       setUsers(response.data.users);
       setTotalPages(response.data.totalPages);
       setCurrentPage(response.data.page);
+      setTotalUsers(response.data.total || 0);
     } catch (error) {
       console.error("Error fetching users:", error);
       toast.error("Failed to load users");
@@ -49,8 +57,8 @@ const UserDetails = () => {
   };
 
   useEffect(() => {
-    fetchUsers(currentPage);
-  }, [currentPage]);
+    fetchUsers();
+  }, [currentPage, debouncedSearch]);
 
   // Toggle action menu
   const toggleActionMenu = (userId) => {
@@ -251,37 +259,33 @@ const UserDetails = () => {
         </motion.div>
 
         {/* Search Bar */}
-        <motion.div
-          className="bg-white shadow-lg rounded-xl p-6 mb-6 border border-blue-100"
-          variants={itemVariants}
-        >
-          <div className="flex flex-col lg:flex-row gap-4 items-center justify-between">
-            <div className="relative flex-1 w-full">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MdSearch className="text-blue-400" size={20} />
-              </div>
-              <input
-                type="text"
-                placeholder="Search users by name, email or phone..."
-                className="pl-10 pr-4 py-3 w-full border border-blue-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all bg-white text-gray-700 placeholder-gray-500 text-base shadow-sm"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+        <div className="mb-6">
+          <div className="relative flex-1 w-full">
+            {/* Search Icon */}
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <FaSearch className="text-blue-400 text-lg" />
             </div>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-800 text-white rounded-xl hover:from-blue-700 hover:to-blue-900 transition-all duration-200 font-semibold shadow-lg shadow-blue-200 whitespace-nowrap text-base w-full lg:w-auto mt-2 lg:mt-0"
-              onClick={() => fetchUsers(currentPage)}
-            >
-              Refresh Users
-            </motion.button>
+
+            {/* Input Field */}
+            <input
+              type="text"
+              placeholder="Search users by name or email..."
+              className="pl-12 pr-10 py-3 w-full border border-blue-200 dark:border-blue-700 rounded-xl bg-white/50 dark:bg-gray-700/50 text-gray-800 dark:text-gray-200 focus:ring-2 focus:ring-blue-500 transition-all duration-200 focus:outline-none"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
+
+            {/* Subtle Spinner */}
+            {isLoading && <SubtleSpinner />}
           </div>
-        </motion.div>
+        </div>
 
         {/* Table Container */}
         <motion.div
-          className="bg-white shadow-lg rounded-xl overflow-hidden border border-blue-100"
+          className="bg-white shadow-lg rounded-xl overflow-hidden border border-blue-100 mb-6"
           variants={itemVariants}
         >
           {/* Table Wrapper */}
@@ -299,7 +303,6 @@ const UserDetails = () => {
                     <th className="px-6 py-4 text-left font-semibold text-gray-700 text-sm uppercase tracking-wider whitespace-nowrap min-w-[180px]">
                       Phone Number
                     </th>
-
                     <th className="px-6 py-4 text-left font-semibold text-gray-700 text-sm uppercase tracking-wider whitespace-nowrap min-w-[120px]">
                       Actions
                     </th>
@@ -324,9 +327,6 @@ const UserDetails = () => {
                         </td>
                         <td className="px-6 py-4">
                           <div className="h-4 bg-blue-200 rounded w-32"></div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="h-4 bg-blue-200 rounded w-24"></div>
                         </td>
                         <td className="px-6 py-4">
                           <div className="h-8 bg-blue-200 rounded w-20"></div>
@@ -458,7 +458,7 @@ const UserDetails = () => {
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.5 }}
                     >
-                      <td colSpan={5} className="px-6 py-12 text-center">
+                      <td colSpan={4} className="px-6 py-12 text-center">
                         <div className="flex flex-col items-center justify-center text-gray-500">
                           <motion.div
                             className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4"
@@ -487,136 +487,19 @@ const UserDetails = () => {
               </table>
             </div>
           </div>
-
-          {/* Pagination */}
-          {!isLoading && totalPages > 1 && (
-            <motion.div
-              className="px-4 sm:px-6 py-4 border-t border-blue-200 bg-gradient-to-b from-blue-50 to-blue-100"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <div className="flex flex-col lg:flex-row justify-between items-center gap-3 sm:gap-4">
-                {/* Results info */}
-                <div className="text-gray-700 text-sm font-medium text-center lg:text-left whitespace-nowrap bg-white/80 px-3 py-2 rounded-lg backdrop-blur-sm">
-                  Showing{" "}
-                  <span className="font-semibold text-blue-700">
-                    {(currentPage - 1) * usersPerPage + 1}
-                  </span>{" "}
-                  to{" "}
-                  <span className="font-semibold text-blue-700">
-                    {Math.min(currentPage * usersPerPage, users.length)}
-                  </span>{" "}
-                  of{" "}
-                  <span className="font-semibold text-blue-900">
-                    {users.length}
-                  </span>{" "}
-                  users
-                </div>
-
-                {/* Pagination controls */}
-                <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto">
-                  {/* Page info for mobile */}
-                  <div className="sm:hidden text-xs text-gray-600 font-medium bg-white/60 px-2 py-1 rounded">
-                    Page {currentPage} of {totalPages}
-                  </div>
-
-                  <div className="flex items-center justify-center gap-1 sm:gap-2 w-full sm:w-auto">
-                    {/* Previous button */}
-                    <motion.button
-                      whileHover={{ scale: 1.05, backgroundColor: "#dbeafe" }}
-                      whileTap={{ scale: 0.95 }}
-                      disabled={currentPage === 1}
-                      onClick={() => setCurrentPage((prev) => prev - 1)}
-                      className="flex items-center gap-1 px-3 sm:px-4 py-2 bg-white text-blue-700 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 font-medium border border-blue-300 text-xs sm:text-sm whitespace-nowrap shadow-sm hover:shadow-md"
-                    >
-                      <MdKeyboardArrowLeft size={18} />
-                      <span className="hidden xs:inline">Previous</span>
-                    </motion.button>
-
-                    {/* Page numbers */}
-                    <div className="flex items-center gap-1 max-w-[280px] sm:max-w-none overflow-x-auto py-1 px-1">
-                      {Array.from({ length: totalPages }, (_, i) => {
-                        const pageNum = i + 1;
-
-                        // Show only relevant pages (first, last, and pages around current)
-                        const showPage =
-                          pageNum === 1 ||
-                          pageNum === totalPages ||
-                          Math.abs(pageNum - currentPage) <= 1 ||
-                          (currentPage <= 2 && pageNum <= 4) ||
-                          (currentPage >= totalPages - 1 &&
-                            pageNum >= totalPages - 3);
-
-                        if (!showPage) {
-                          // Show ellipsis for hidden pages
-                          if (pageNum === 2 || pageNum === totalPages - 1) {
-                            return (
-                              <span
-                                key={`ellipsis-${pageNum}`}
-                                className="px-2 text-gray-400 font-medium"
-                              >
-                                ...
-                              </span>
-                            );
-                          }
-                          return null;
-                        }
-
-                        return (
-                          <motion.button
-                            key={pageNum}
-                            whileHover={{ scale: 1.1 }}
-                            whileTap={{ scale: 0.9 }}
-                            onClick={() => setCurrentPage(pageNum)}
-                            className={`min-w-[36px] h-9 rounded-lg font-semibold transition-all duration-200 text-sm flex-shrink-0 ${
-                              currentPage === pageNum
-                                ? "bg-gradient-to-r from-blue-600 to-blue-800 text-white shadow-lg shadow-blue-300/50 transform scale-105"
-                                : "bg-white/90 text-blue-700 hover:bg-blue-100 border border-blue-200/80"
-                            }`}
-                          >
-                            {pageNum}
-                          </motion.button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Next button */}
-                    <motion.button
-                      whileHover={{ scale: 1.05, backgroundColor: "#dbeafe" }}
-                      whileTap={{ scale: 0.95 }}
-                      disabled={currentPage === totalPages}
-                      onClick={() => setCurrentPage((prev) => prev + 1)}
-                      className="flex items-center gap-1 px-3 sm:px-4 py-2 bg-white text-blue-700 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200 font-medium border border-blue-300 text-xs sm:text-sm whitespace-nowrap shadow-sm hover:shadow-md"
-                    >
-                      <span className="hidden xs:inline">Next</span>
-                      <MdKeyboardArrowRight size={18} />
-                    </motion.button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Mobile page slider indicator */}
-              <div className="mt-3 sm:hidden">
-                <div className="flex justify-center items-center gap-1">
-                  <div className="h-1 bg-blue-200 rounded-full overflow-hidden w-32">
-                    <motion.div
-                      className="h-full bg-blue-600 rounded-full"
-                      initial={false}
-                      animate={{
-                        width: `${(currentPage / totalPages) * 100}%`,
-                      }}
-                      transition={{ duration: 0.3 }}
-                    />
-                  </div>
-                  <span className="text-xs text-gray-600 font-medium">
-                    {currentPage}/{totalPages}
-                  </span>
-                </div>
-              </div>
-            </motion.div>
-          )}
         </motion.div>
+
+        {/* Pagination Box */}
+        {totalPages > 1 && (
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={totalUsers}
+            itemsPerPage={usersPerPage}
+            currentItems={users}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
+        )}
       </div>
     </motion.div>
   );

@@ -7,20 +7,27 @@ import {
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 import axios from "axios";
+import { useSelector } from "react-redux";
 
 const DestinationSection = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [destinations, setDestinations] = useState([]);
   const [itemsPerSlide, setItemsPerSlide] = useState(1);
   const [loading, setLoading] = useState(true);
+  const token = useSelector((state) => state.auth.token);
 
   // Fetch destinations from backend
   const fetchDestinations = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:8000/api/get-tours");
-      if (res.data && Array.isArray(res.data.tours)) {
-        setDestinations(res.data.tours);
+      const res = await axios.get(
+        "http://localhost:8000/api/get-destinations",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (res.data && Array.isArray(res.data.destinations)) {
+        setDestinations(res.data.destinations);
       } else {
         setDestinations([]);
       }
@@ -140,8 +147,8 @@ const DestinationSection = () => {
                   >
                     <div className="group relative rounded-2xl shadow-md overflow-hidden cursor-pointer">
                       <img
-                        src={item.imgUrl}
-                        alt={item.imgAlt || item.title}
+                        src={item.destinationImg}
+                        alt={item.name}
                         className="w-full h-72 object-cover rounded-2xl"
                         onError={(e) =>
                           (e.target.src = `https://picsum.photos/400/300?random=${item._id}`)
@@ -151,11 +158,11 @@ const DestinationSection = () => {
                       <div className="absolute bottom-0 left-0 right-0 p-4 text-white">
                         <div className="flex items-center mb-1">
                           <FaMapMarkerAlt className="mr-2" />
-                          {item.location}
+                          {/* {item.location} */}
                         </div>
-                        <h3 className="text-xl font-bold">{item.title}</h3>
+                        <h3 className="text-xl font-bold">{item.name}</h3>
                         <p className="text-gray-200 text-sm">
-                          {item.description}
+                          {/* {item.description} */}
                         </p>
                         <div className="mt-2">
                           <button className="bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-full flex items-center text-white">

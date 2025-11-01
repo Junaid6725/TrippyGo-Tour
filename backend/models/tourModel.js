@@ -6,11 +6,7 @@ const tourSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    imgUrl: {
-      type: String,
-      required: true,
-    },
-    imgAlt: {
+    tourImg: {
       type: String,
       required: true,
     },
@@ -23,7 +19,7 @@ const tourSchema = new mongoose.Schema(
       required: true,
     },
     duration: {
-      type: String,
+      type: Number,
       required: true,
     },
     distance: {
@@ -51,6 +47,17 @@ const tourSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    destinationId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Destination",
+      required: [true, "Destination is required for every tour"],
+    },
+    reviews: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Review",
+      },
+    ],
     averageRating: {
       type: Number,
       default: 0,

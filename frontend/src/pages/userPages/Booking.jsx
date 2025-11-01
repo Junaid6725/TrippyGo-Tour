@@ -158,13 +158,14 @@ const Booking = () => {
                 </p>
               )}
               <input
-                {...register("bookingDate", {
+                {...register("startDate", {
                   required: "Booking date is required!",
                 })}
                 type="date"
                 className="w-full p-2 border rounded"
+                min={new Date().toISOString().split("T")[0]}
               />
-              {errors.bookingDate && (
+              {errors.startDate && (
                 <p className="text-red-500 text-sm mt-1">
                   {errors.bookingDate.message}
                 </p>
@@ -209,7 +210,7 @@ const Booking = () => {
               <div className="flex  justify-end">
                 <button
                   type="submit"
-                  className="w-full text-lg  transition-colors hover:cursor-pointer py-3 px-8 bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900 text-white rounded-xl shadow-md transform hover:scale-105 duration-300 text-center"
+                  className="w-full text-lg  transition-colors hover:cursor-pointer py-3 px-8 bg-blue-600 text-white rounded-xl shadow-md transform hover:scale-105 duration-300 text-center"
                 >
                   Book Now
                 </button>

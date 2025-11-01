@@ -1,18 +1,6 @@
 import { motion } from "framer-motion";
 import { FaCheckCircle } from "react-icons/fa";
-
-const packingItems = [
-  "Original CNIC/Passport with valid visa",
-  "Comfortable walking shoes",
-  "Weather-appropriate clothing",
-  "Personal medication and first aid",
-  "Reusable water bottle",
-  "Power bank and charging cables",
-  "Sunscreen and sunglasses",
-  "Personal hygiene items",
-  "Camera or smartphone for photos",
-  "Lightweight backpack for day trips",
-];
+import { packingItems } from "../../../data";
 
 const PackingList = () => {
   // Animation variants

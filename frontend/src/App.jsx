@@ -30,6 +30,8 @@ import ScrollToTop from "./components/common/ScrollToTop";
 import UserBooking from "./components/user/bookingPageComponent/UserBooking";
 import UserLayout from "./components/user/layout/UserLayout";
 import UserProfile from "./pages/userPages/UserProfile";
+import AdminDestinations from "./pages/adminPages/AdminDestinations";
+import AddDestination from "./components/admin/adminDestinationComponent/AddDestination";
 
 function App() {
   const router = createBrowserRouter([
@@ -95,6 +97,8 @@ function App() {
         { path: "tour", element: <AdminTour /> },
         { path: "booking", element: <AdminBookings /> },
         { path: "edit-tour/:id", element: <EditTour /> },
+        { path: "destination", element: <AdminDestinations /> },
+        { path: "add-destination", element: <AddDestination /> },
         { path: "add-tour", element: <AddTour /> },
         { path: "*", element: <NotFound /> },
       ],

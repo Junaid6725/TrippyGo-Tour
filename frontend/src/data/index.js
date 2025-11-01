@@ -183,34 +183,6 @@ export const terms = [
   },
 ];
 
-export const packingItems = [
-  "Warm and quick drying layers for mountainous terrains",
-  "Warm jacket",
-  "Thermal",
-  "Raincoat",
-  "Joggers",
-  "Trekking shoes, socks, and stick",
-  "Warm socks, gloves, and cap",
-  "Sun protection – hat, sunscreen, sunglasses",
-  "Sandals",
-  "Torch",
-  "Re-usable water bottle",
-  "Head scarf or shawl (for women)",
-  "Modest clothes (no shorts or sleeveless)",
-  "Travel chargers (2 round pins) – 220-240 Volts",
-  "Extra camera battery",
-  "Power bank",
-  "Ear plugs",
-  "Quick dry travel towel",
-  "Travel pillow",
-  "Personal medications & first aid",
-  "Sanitary products (for women)",
-  "Wash-bag: soap, shampoo, deodorant, etc.",
-  "Books, journal, or music for long drives",
-  "Travel bag locks",
-  "Neck wallet or money belt",
-];
-
 export const tips = [
   {
     icon: "FaRecycle",
@@ -292,4 +264,28 @@ export const sidebarItems = [
     icon: "MdOutlineTour",
     link: "/admin-dashboard/tour",
   },
+  {
+    text: "Destination",
+    icon: "FaGlobeAmericas",
+    link: "/admin-dashboard/destination",
+  },
+];
+
+export const packingItems = [
+  "Valid CNIC/Passport and travel documents",
+  "Comfortable walking shoes or sneakers",
+  "Weather-appropriate clothing (light or warm layers)",
+  "Personal medications and basic first aid kit",
+  "Reusable water bottle",
+  "Power bank and charging cables",
+  "Toiletries: toothbrush, toothpaste, soap, deodorant, etc.",
+  "Sunscreen and sunglasses",
+  "Lightweight backpack for day trips",
+  "Travel pillow or neck rest",
+  "Raincoat or small umbrella",
+  "Camera or smartphone for photos",
+  "Travel adapters or plug converters",
+  "Small lock for luggage",
+  "Earphones or earbuds",
+  "Hand sanitizer and face mask",
 ];

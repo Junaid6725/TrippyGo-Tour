@@ -13,17 +13,17 @@ cloudinary.config({
 const storage = new CloudinaryStorage({
   cloudinary,
   params: async (req, file) => {
-    let folderName = "uploads"; 
+    let folderName = "uploads";
     let formats = ["jpg", "jpeg", "png"];
 
     if (file.fieldname === "profileImage") {
       folderName = "profileImg";
       formats = ["png", "jpg"];
-    } else if (file.fieldname === "tourImage") {
-      folderName = "tourImages";
+    } else if (file.fieldname === "tourImg") {
+      folderName = "tourImg";
       formats = ["jpg", "jpeg", "png", "webp"];
-    } else if (file.fieldname === "banner") {
-      folderName = "banners";
+    } else if (file.fieldname === "destinationImg") {
+      folderName = "destinationImg";
       formats = ["jpg", "png"];
     }
 

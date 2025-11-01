@@ -1,5 +1,5 @@
 import axios from "axios";
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import {
@@ -20,7 +20,12 @@ import {
   MdDoneAll,
   MdKeyboardArrowLeft,
   MdKeyboardArrowRight,
+  MdTimerOff,
 } from "react-icons/md";
+import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import useDebounce from "../../../hooks/useDebounce";
+import SubtleSpinner from "../../user/shared/SubtleSpinner";
+import Pagination from "../../user/shared/Pagination";
 
 const AllBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -30,28 +35,33 @@ const AllBookings = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [updateMessage, setUpdateMessage] = useState({ type: "", text: "" });
   const [updatingStatus, setUpdatingStatus] = useState(null);
-  const usersPerPage = 5;
+  const bookingsPerPage = 5;
   const token = useSelector((state) => state.auth.token);
+  const debouncedSearch = useDebounce(searchTerm, 500);
+  const [totalBookings, setTotalBookings] = useState("");
+  const [pendingStatus, setPendingStatus] = useState(0);
+  const [confirmedStatus, setConfirmedStatus] = useState(0);
+  const [rejectedStatus, setRejectedStatus] = useState(0);
+  const [completedStatus, setCompletedStatus] = useState(0);
+  const [cancelledStatus, setCancelledStatus] = useState(0);
+  const [expiredStatus, setExpiredStatus] = useState(0);
 
   // Enhanced status options with better configuration
   const statusOptions = [
     {
-      value: "pending",
-      label: "Pending",
-      color: "yellow",
-      icon: "⏳",
-      bgColor: "bg-yellow-50",
-      textColor: "text-yellow-700",
-      borderColor: "border-yellow-200",
+      value: "expired",
+      label: "Expired",
+      color: "gray",
+      bgColor: "bg-gray-50",
+      textColor: "text-gray-700",
+      borderColor: "border-gray-200",
     },
     {
       value: "confirmed",
       label: "Confirmed",
       color: "green",
-      icon: "✅",
       bgColor: "bg-green-50",
       textColor: "text-green-700",
       borderColor: "border-green-200",
@@ -60,10 +70,33 @@ const AllBookings = () => {
       value: "rejected",
       label: "Rejected",
       color: "red",
-      icon: "❌",
       bgColor: "bg-red-50",
       textColor: "text-red-700",
       borderColor: "border-red-200",
+    },
+    {
+      value: "pending",
+      label: "Pending",
+      color: "yellow",
+      bgColor: "bg-yellow-50",
+      textColor: "text-yellow-700",
+      borderColor: "border-yellow-200",
+    },
+    {
+      value: "cancelled",
+      label: "Cancelled",
+      color: "orange",
+      bgColor: "bg-orange-50",
+      textColor: "text-orange-700",
+      borderColor: "border-orange-200",
+    },
+    {
+      value: "completed",
+      label: "Completed",
+      color: "blue",
+      bgColor: "bg-blue-50",
+      textColor: "text-blue-700",
+      borderColor: "border-blue-200",
     },
   ];
 
@@ -74,11 +107,14 @@ const AllBookings = () => {
     );
   };
 
-  const fetchBookings = async (page = 1) => {
+  const fetchBookings = async () => {
     try {
-      setIsInitialLoading(true);
+      setIsLoading(true);
+
       const response = await axios.get(
-        `http://localhost:8000/api/get-bookings?page=${page}&limit=${usersPerPage}`,
+        `http://localhost:8000/api/get-bookings?page=${currentPage}&limit=${bookingsPerPage}&search=${debouncedSearch}&status=${
+          statusFilter !== "All" ? statusFilter : ""
+        }`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -86,25 +122,38 @@ const AllBookings = () => {
           },
         }
       );
-      setBookings(response.data.bookings || []);
-      setTotalPages(response.data.totalPages);
-      setCurrentPage(response.data.page);
+
+      if (response.data.success) {
+        setBookings(response.data.bookings || []);
+        setTotalPages(response.data.totalPages || 1);
+        setPendingStatus(response.data.pending);
+        setConfirmedStatus(response.data.confirmed);
+        setCompletedStatus(response.data.completed);
+        setRejectedStatus(response.data.rejected);
+        setCancelledStatus(response.data.cancelled);
+        setExpiredStatus(response.data.expired);
+
+        setTotalBookings(response.data.total || 0);
+      } else {
+        setBookings([]);
+        setTotalPages(1);
+      }
     } catch (error) {
       console.error("Error fetching bookings:", error);
       setUpdateMessage({
         type: "error",
         text: "Failed to load bookings. Please try again.",
       });
+      setBookings([]);
     } finally {
-      setIsInitialLoading(false);
+      setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchBookings(currentPage);
-  }, [currentPage]);
+    if (token) fetchBookings();
+  }, [currentPage, debouncedSearch, statusFilter]);
 
-  // Quick status update function
   const updateBookingStatus = async (bookingId, newStatus) => {
     if (!bookingId) return;
 
@@ -112,26 +161,45 @@ const AllBookings = () => {
     setUpdateMessage({ type: "", text: "" });
 
     try {
+      const bookingToUpdate = bookings.find((b) => b._id === bookingId);
+      if (!bookingToUpdate) return;
+
+      const oldStatus = bookingToUpdate.bookingStatus;
+
       const response = await axios.put(
         `http://localhost:8000/api/update-booking/${bookingId}`,
-        {
-          bookingStatus: newStatus,
-        },
+        { bookingStatus: newStatus },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       if (response.data.success) {
-        setBookings((prevBookings) =>
-          prevBookings.map((booking) =>
-            booking._id === bookingId
-              ? { ...booking, bookingStatus: newStatus }
-              : booking
+        setBookings((prev) =>
+          prev.map((b) =>
+            b._id === bookingId ? { ...b, bookingStatus: newStatus } : b
           )
         );
 
-        setTimeout(() => {
-          setUpdateMessage({ type: "", text: "" });
-        }, 3000);
+        // update counts for both pending and confirmed
+        const updateCount = (status, setter) => {
+          if (oldStatus === status && newStatus !== status)
+            setter((p) => Math.max(0, p - 1));
+          else if (oldStatus !== status && newStatus === status)
+            setter((p) => p + 1);
+        };
+
+        updateCount("pending", setPendingStatus);
+        updateCount("confirmed", setConfirmedStatus);
+        updateCount("rejected", setRejectedStatus);
+        updateCount("completed", setCompletedStatus);
+        updateCount("expired", setExpiredStatus);
+        updateCount("cancelled", setCancelledStatus);
+
+        setUpdateMessage({
+          type: "success",
+          text: "Booking status updated successfully!",
+        });
+
+        setTimeout(() => setUpdateMessage({ type: "", text: "" }), 3000);
       }
     } catch (error) {
       console.error("Error updating booking status:", error);
@@ -180,24 +248,6 @@ const AllBookings = () => {
     return `${config.bgColor} ${config.textColor} ${config.borderColor}`;
   };
 
-  // Filter bookings based on search term and status
-  const filteredBookings = bookings.filter((booking) => {
-    const matchesSearch =
-      booking.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.phoneNumber?.includes(searchTerm) ||
-      booking.email?.toLowerCase().includes(searchTerm.toLowerCase());
-
-    const matchesStatus =
-      statusFilter === "All" ||
-      booking.bookingStatus?.toLowerCase() === statusFilter.toLowerCase();
-
-    return matchesSearch && matchesStatus;
-  });
-
-  // Calculate pagination data
-  const totalBookingsCount = bookings.length;
-  const currentPageBookings = filteredBookings;
-
   return (
     <div className="p-3 sm:p-4 min-h-screen">
       <div className="max-w-7xl mx-auto">
@@ -240,32 +290,29 @@ const AllBookings = () => {
         )}
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-4 mb-8">
           {/* Total Bookings Card */}
-          <div className="bg-blue-500 rounded-2xl p-6 relative overflow-hidden group transform hover:scale-105 transition-all duration-500 hover:shadow-2xl shadow-lg">
-            <div className="absolute -top-10 -right-10 w-32 h-32 bg-white/10 rounded-full animate-pulse"></div>
-            <div className="absolute -bottom-8 -left-8 w-24 h-24 bg-white/5 rounded-full"></div>
+          <div className="bg-blue-500 rounded-2xl p-4 relative overflow-hidden group transform hover:scale-105 transition-all duration-500 hover:shadow-2xl shadow-lg">
+            <div className="absolute -top-8 -right-8 w-24 h-24 bg-white/10 rounded-full animate-pulse"></div>
+            <div className="absolute -bottom-6 -left-6 w-20 h-20 bg-white/5 rounded-full"></div>
             <div className="absolute inset-0 bg-white/5 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
 
             <div className="flex items-center justify-between relative z-10">
               <div>
-                <p className="text-blue-100 text-sm font-medium mb-1 tracking-wide">
+                <p className="text-blue-100 text-xs font-medium mb-1 tracking-wide">
                   Total Bookings
                 </p>
-                <p className="text-4xl font-bold text-white mb-2 drop-shadow-lg">
-                  {totalBookingsCount}
+                <p className="text-2xl font-bold text-white mb-1 drop-shadow-lg">
+                  {totalBookings}
                 </p>
-                <div className="flex items-center gap-2">
-                  <span className="text-blue-200 text-xs bg-white/10 px-2 py-1 rounded-full">
+                <div className="flex items-center gap-1">
+                  <span className="text-blue-200 text-xs bg-white/10 px-1.5 py-0.5 rounded-full">
                     All time
                   </span>
-                  <div className="w-16 bg-white/20 rounded-full h-1">
-                    <div className="bg-white h-1 rounded-full w-full"></div>
-                  </div>
                 </div>
               </div>
-              <div className="p-4 bg-white/20 rounded-2xl backdrop-blur-sm group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-lg">
-                <MdCalendarToday className="text-white text-2xl" />
+              <div className="p-3 bg-white/20 rounded-xl backdrop-blur-sm group-hover:scale-110 group-hover:rotate-12 transition-all duration-300 shadow-lg">
+                <MdCalendarToday className="text-white text-xl" />
               </div>
             </div>
             <div className="absolute bottom-0 left-0 w-full h-1 bg-white/40 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
@@ -277,33 +324,55 @@ const AllBookings = () => {
               value: "pending",
               label: "Pending",
               color: "bg-amber-500",
-              icon: <MdSchedule className="text-2xl" />,
+              icon: <MdSchedule className="text-xl" />,
               description: "Awaiting confirmation",
               iconBg: "bg-amber-600/20",
+              count: pendingStatus,
             },
             {
               value: "confirmed",
               label: "Confirmed",
               color: "bg-green-500",
-              icon: <MdCheckCircle className="text-2xl" />,
+              icon: <MdCheckCircle className="text-xl" />,
               description: "Bookings confirmed",
               iconBg: "bg-green-600/20",
+              count: confirmedStatus,
             },
             {
               value: "rejected",
               label: "Rejected",
               color: "bg-red-500",
-              icon: <MdCancel className="text-2xl" />,
+              icon: <MdCancel className="text-xl" />,
               description: "Bookings declined",
               iconBg: "bg-red-600/20",
+              count: rejectedStatus,
+            },
+            {
+              value: "cancelled",
+              label: "Cancelled",
+              color: "bg-gray-500",
+              icon: <MdClose className="text-xl" />,
+              description: "Bookings cancelled",
+              iconBg: "bg-gray-600/20",
+              count: cancelledStatus,
+            },
+            {
+              value: "expire",
+              label: "Expired",
+              color: "bg-orange-500",
+              icon: <MdTimerOff className="text-xl" />,
+              description: "Bookings expired",
+              iconBg: "bg-orange-600/20",
+              count: expiredStatus,
             },
             {
               value: "completed",
               label: "Completed",
               color: "bg-purple-500",
-              icon: <MdDoneAll className="text-2xl" />,
+              icon: <MdDoneAll className="text-xl" />,
               description: "Finished trips",
               iconBg: "bg-purple-600/20",
+              count: completedStatus,
             },
           ].map((status) => {
             const count = bookings.filter(
@@ -317,86 +386,97 @@ const AllBookings = () => {
             return (
               <div
                 key={status.value}
-                className={`${status.color} rounded-2xl p-6 relative overflow-hidden group transform hover:scale-105 transition-all duration-500 hover:shadow-2xl shadow-lg`}
+                className={`${status.color} rounded-2xl p-4 relative overflow-hidden group transform hover:scale-105 transition-all duration-500 hover:shadow-2xl shadow-lg lg:col-span-1 xl:col-span-1`}
               >
-                <div className="absolute -top-12 -right-12 w-32 h-32 bg-white/10 rounded-full"></div>
-                <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-white/5 rounded-full"></div>
+                <div className="absolute -top-10 -right-10 w-20 h-20 bg-white/10 rounded-full"></div>
+                <div className="absolute -bottom-8 -left-8 w-16 h-16 bg-white/5 rounded-full"></div>
                 <div className="absolute inset-0 bg-white/10 transform -skew-x-12 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
 
                 <div className="flex items-center justify-between relative z-10">
                   <div className="flex-1">
-                    <p className="text-white/90 text-sm font-semibold mb-2 tracking-wide uppercase">
+                    <p className="text-white/90 text-xs font-semibold mb-1 tracking-wide uppercase">
                       {status.label}
                     </p>
-                    <p className="text-4xl font-bold text-white mb-3 drop-shadow-lg">
-                      {count}
+                    <p className="text-xl lg:text-2xl xl:text-2xl font-bold text-white mb-2 drop-shadow-lg">
+                      {status.count}
                     </p>
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                       <div className="flex items-center justify-between">
                         <span className="text-white/80 text-xs font-medium">
                           Progress
                         </span>
-                        <span className="text-white text-xs font-bold bg-white/20 px-2 py-1 rounded-full">
+                        <span className="text-white text-xs font-bold bg-white/20 px-1.5 py-0.5 rounded-full">
                           {percentage}%
                         </span>
                       </div>
-                      <div className="w-full bg-white/20 rounded-full h-2.5 shadow-inner">
+                      <div className="w-full bg-white/20 rounded-full h-1.5 shadow-inner">
                         <div
-                          className="bg-white h-2.5 rounded-full shadow-lg transition-all duration-1000 ease-out"
+                          className="bg-white h-1.5 rounded-full shadow-lg transition-all duration-1000 ease-out"
                           style={{ width: `${percentage}%` }}
                         ></div>
                       </div>
                     </div>
                   </div>
                   <div
-                    className={`p-4 rounded-2xl backdrop-blur-sm group-hover:scale-110 transition-all duration-300 ml-4 shadow-lg ${status.iconBg}`}
+                    className={`p-3 rounded-xl backdrop-blur-sm group-hover:scale-110 transition-all duration-300 ml-2 shadow-lg ${status.iconBg} lg:p-4 xl:p-4`}
                   >
                     {status.icon}
                   </div>
                 </div>
-                <div className="absolute bottom-0 left-0 w-full h-1.5 bg-white/50 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
+                <div className="absolute bottom-0 left-0 w-full h-1 bg-white/50 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500"></div>
               </div>
             );
           })}
         </div>
 
         {/* Search and Filter Section */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 sm:p-6 mb-4 sm:mb-6">
+        <div className="rounded-2xl shadow-lg border border-gray-100/80 p-4 sm:p-6 mb-4 sm:mb-6 backdrop-blur-sm bg-white/95">
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-            {/* Search Input */}
-            <div className="relative flex-1 w-full lg:max-w-md">
+            {/* Search Input - Increased width on lg screens */}
+            <div className="relative flex-1 w-full lg:max-w-2xl xl:max-w-3xl">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <MdSearch className="text-gray-400" size={20} />
               </div>
               <input
                 type="text"
                 placeholder="Search by name, phone, or email..."
-                className="pl-10 pr-4 py-3 w-full border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all text-sm bg-white"
+                className="pl-10 pr-4 py-3 w-full border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 text-sm bg-white shadow-sm hover:shadow-md focus:shadow-lg"
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
               />
+              {/* Loader inside search bar */}
+              {isLoading && <SubtleSpinner />}
+              {/* Animated focus indicator */}
+              <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-focus-within:w-full"></div>
             </div>
 
             {/* Filter Controls */}
             <div className="flex gap-3 w-full lg:w-auto">
               {/* Mobile Filter Toggle */}
               <button
-                className="flex lg:hidden items-center gap-2 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-colors text-sm font-medium"
+                className="flex lg:hidden items-center gap-2 px-4 py-3 bg-gradient-to-r from-gray-50 to-gray-100 text-gray-700 rounded-xl hover:from-gray-100 hover:to-gray-200 active:scale-95 transition-all duration-300 text-sm font-medium border border-gray-200 shadow-sm hover:shadow-md"
                 onClick={() => setShowFilters(!showFilters)}
               >
                 {showFilters ? (
-                  <MdClose size={18} />
+                  <MdClose size={18} className="text-red-500" />
                 ) : (
-                  <MdFilterList size={18} />
+                  <MdFilterList size={18} className="text-blue-500" />
                 )}
                 {showFilters ? "Close" : "Filters"}
               </button>
 
               {/* Filter Dropdown */}
-              <div className={`${showFilters ? "flex" : "hidden"} lg:flex`}>
-                <div className="relative">
+              <div
+                className={`${
+                  showFilters ? "flex" : "hidden"
+                } lg:flex relative`}
+              >
+                <div className="relative group">
                   <select
-                    className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full bg-white text-sm font-medium"
+                    className="px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full bg-white text-sm font-medium shadow-sm hover:shadow-md focus:shadow-lg transition-all duration-300 appearance-none cursor-pointer pr-10"
                     value={statusFilter}
                     onChange={(e) => setStatusFilter(e.target.value)}
                   >
@@ -407,31 +487,44 @@ const AllBookings = () => {
                       </option>
                     ))}
                   </select>
+                  {/* Custom dropdown arrow */}
+                  <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                    <div className="w-2 h-2 border-r-2 border-b-2 border-gray-400 transform rotate-45 transition-transform duration-300 group-hover:translate-y-0.5"></div>
+                  </div>
+                  {/* Animated border */}
+                  <div className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-500 transition-all duration-300 group-focus-within:w-full"></div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {isInitialLoading ? (
-          <div className="flex justify-center items-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          </div>
-        ) : currentPageBookings.length === 0 ? (
+        {bookings.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-2xl shadow-sm border border-gray-100">
             <div className="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
               <MdCalendarToday className="text-gray-400 text-3xl" />
             </div>
             <div className="text-gray-500 text-lg font-medium mb-2">
-              {bookings.length === 0
-                ? "No bookings found"
-                : "No matching bookings found"}
+              {searchTerm || statusFilter !== "All"
+                ? "No matching bookings found"
+                : "No bookings found"}
             </div>
             <p className="text-gray-400 max-w-md mx-auto">
-              {bookings.length === 0
-                ? "When bookings are made, they will appear here."
-                : "Try adjusting your search criteria or filters."}
+              {searchTerm || statusFilter !== "All"
+                ? "Try adjusting your search criteria or filters."
+                : "When bookings are made, they will appear here."}
             </p>
+            {(searchTerm || statusFilter !== "All") && (
+              <button
+                onClick={() => {
+                  setSearchTerm("");
+                  setStatusFilter("All");
+                }}
+                className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 transition-colors text-sm font-medium"
+              >
+                Clear Filters
+              </button>
+            )}
           </div>
         ) : (
           <>
@@ -459,10 +552,13 @@ const AllBookings = () => {
                       <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap text-xs sm:text-sm">
                         TOTAL
                       </th>
+                      <th className="px-4 py-4 text-left font-semibold text-gray-700 whitespace-nowrap text-xs sm:text-sm">
+                        ACTION
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {currentPageBookings.map((item) => (
+                    {bookings.map((item) => (
                       <tr
                         key={item._id}
                         className="hover:bg-gray-50 transition-all duration-200 group"
@@ -508,11 +604,29 @@ const AllBookings = () => {
                               className="text-gray-400"
                               size={14}
                             />
-                            {formatDate(item.createdAt)}
+                            {formatDate(item.bookingDate)}
                           </div>
                           <div className="text-xs text-gray-500 flex items-center gap-1 mt-1">
                             <MdAccessTime size={12} />
-                            {formatTime(item.createdAt)}
+                            {formatTime(item.bookingDate)}
+                          </div>
+                        </td>
+                        <td className="px-4 py-4 whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border ${getStatusBadgeStyle(
+                              item.bookingStatus
+                            )}`}
+                          >
+                            {getStatusConfig(item.bookingStatus).label}
+                          </span>
+                        </td>
+                        <td className="px-4 py-4 font-semibold text-gray-900 whitespace-nowrap text-sm">
+                          <div className="flex items-center gap-1">
+                            <MdAttachMoney
+                              className="text-green-600"
+                              size={16}
+                            />
+                            {item.bookingTotal || 0}
                           </div>
                         </td>
                         <td className="px-4 py-4 whitespace-nowrap">
@@ -523,9 +637,7 @@ const AllBookings = () => {
                                 updateBookingStatus(item._id, e.target.value)
                               }
                               disabled={updatingStatus === item._id}
-                              className={`appearance-none inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border cursor-pointer transition-all ${getStatusBadgeStyle(
-                                item.bookingStatus
-                              )} ${
+                              className={`appearance-none inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border cursor-pointer transition-all bg-white border-gray-300 text-gray-700 hover:bg-gray-50 ${
                                 updatingStatus === item._id
                                   ? "opacity-50 cursor-not-allowed"
                                   : "hover:opacity-80"
@@ -544,55 +656,23 @@ const AllBookings = () => {
                             )}
                           </div>
                         </td>
-                        <td className="px-4 py-4 font-semibold text-gray-900 whitespace-nowrap text-sm">
-                          <div className="flex items-center gap-1">
-                            <MdAttachMoney
-                              className="text-green-600"
-                              size={16}
-                            />
-                            {item.bookingTotal || 0}
-                          </div>
-                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-
-              {/* Pagination Component */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between p-4 border-t border-gray-100">
-                  <button
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    disabled={currentPage === 1}
-                    className="flex items-center gap-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <MdKeyboardArrowLeft size={18} />
-                    Previous
-                  </button>
-                  <span className="text-sm text-gray-600">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <button
-                    onClick={() =>
-                      setCurrentPage((p) => Math.min(totalPages, p + 1))
-                    }
-                    disabled={currentPage === totalPages}
-                    className="flex items-center gap-1 px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    Next
-                    <MdKeyboardArrowRight size={18} />
-                  </button>
-                </div>
-              )}
             </div>
-
-            <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl text-sm text-blue-700 lg:hidden border border-blue-100">
-              <p className="flex items-center justify-center gap-2">
-                <span>💡</span>
-                Swipe horizontally to view all table columns
-              </p>
-            </div>
+            {/* Pagination Component */}
+            {totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalBookings}
+                itemsPerPage={bookingsPerPage}
+                currentItems={bookings}
+                onPageChange={(page) => setCurrentPage(page)}
+              />
+            )}
           </>
         )}
       </div>

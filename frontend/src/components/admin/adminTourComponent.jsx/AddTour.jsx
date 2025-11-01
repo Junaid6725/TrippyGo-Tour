@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import StepOne from "./multiStepForm/StepOne";
@@ -12,6 +12,7 @@ import { toast } from "react-toastify";
 const AddTour = () => {
   const [count, setCount] = useState(1);
   const [tour, setTour] = useState(null);
+  const [destinations, setDestinations] = useState([]);
   const {
     register,
     handleSubmit,
@@ -22,6 +23,23 @@ const AddTour = () => {
   const navigate = useNavigate();
   const token = useSelector((state) => state.auth.token);
 
+  const fetchDestinations = async () => {
+    try {
+      const response = await axios.get(
+        "http://localhost:8000/api/get-destinations",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      setDestinations(response.data?.destinations || []);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    fetchDestinations();
+  }, []);
+
   const submitData = async (data) => {
     try {
       const formData = new FormData();
@@ -29,7 +47,7 @@ const AddTour = () => {
       const exclude = data.excluded.split(",").map((item) => item.trim());
 
       formData.append("title", data.title);
-      formData.append("imgAlt", data.imgAlt);
+      formData.append("destinationId", data.destinationId);
       formData.append("description", data.description);
       formData.append("expenditure", data.expenditure);
       formData.append("duration", data.duration);
@@ -40,8 +58,8 @@ const AddTour = () => {
       formData.append("excluded", JSON.stringify(exclude));
       formData.append("hotelDetail", data.hotelDetail);
 
-      if (data.tourImage && data.tourImage[0]) {
-        formData.append("tourImage", data.tourImage[0]);
+      if (data.tourImg && data.tourImg[0]) {
+        formData.append("tourImg", data.tourImg[0]);
       }
 
       const createTour = await axios.post(
@@ -58,14 +76,22 @@ const AddTour = () => {
       toast.success("Tour created successfully!");
       navigate("/admin-dashboard/tour");
     } catch (error) {
-      console.log(error);
+      console.log(
+        "Error creating tour:",
+        error.response?.data || error.message
+      );
     }
   };
 
   const handleCount = async () => {
     let valid = false;
     if (count === 1) {
-      valid = await trigger(["title", "imgUrl", "imgAlt", "description"]);
+      valid = await trigger([
+        "title",
+        "tourImg",
+        "destinationId",
+        "description",
+      ]);
     } else if (count === 2) {
       valid = await trigger([
         "expenditure",
@@ -92,7 +118,13 @@ const AddTour = () => {
           Add Tour Package
         </h2>
 
-        {count == 1 && <StepOne register={register} errors={errors} />}
+        {count == 1 && (
+          <StepOne
+            register={register}
+            errors={errors}
+            destinations={destinations}
+          />
+        )}
 
         {count == 2 && <StepTwo register={register} errors={errors} />}
 
