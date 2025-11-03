@@ -42,3 +42,18 @@ export const createDestination = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+export const deleteDestination = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const removeDestination = await Destination.findByIdAndDelete(id);
+    if (!removeDestination) {
+      return res.status(404).json({ message: "Destination not found" });
+    }
+    return res
+      .status(200)
+      .json({ success: true, message: "Destination successfully deleted!" });
+  } catch (error) {
+    return res.status(500).json({ message: "Failed to delete destination!" });
+  }
+};

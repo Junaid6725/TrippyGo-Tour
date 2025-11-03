@@ -27,7 +27,12 @@ const EditTour = () => {
 
   const getAllDestinations = async () => {
     try {
-      const res = await axios.get("http://localhost:8000/api/get-destinations");
+      const res = await axios.get(
+        "http://localhost:8000/api/get-destinations",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setDestinations(res.data.destinations || []);
     } catch (err) {
       console.error("Error fetching destinations:", err);

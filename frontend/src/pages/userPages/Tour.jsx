@@ -44,7 +44,7 @@ const Tour = () => {
           <div className="relative group w-full h-[350px] md:h-[450px] lg:h-[550px] overflow-hidden rounded-2xl shadow-lg">
             <img
               className="w-full h-full object-cover transform duration-500 group-hover:scale-110"
-              src={singleTour.imgUrl}
+              src={singleTour.tourImg}
               alt={singleTour.title}
             />
             <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition"></div>

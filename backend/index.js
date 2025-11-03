@@ -9,6 +9,7 @@ import bookingRoutes from "./routes/bookingRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import profileRoutes from "./routes/profileRoutes.js";
 import destinationRoutes from "./routes/destinationRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
 
 import cors from "cors";
 import { autoCompleteBookings } from "./cron/autoCompleteBookings.js";
@@ -38,6 +39,7 @@ app.use("/api", bookingRoutes);
 app.use("/api", userRoutes);
 app.use("/api", profileRoutes);
 app.use("/api", destinationRoutes);
+app.use("/api", reviewRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

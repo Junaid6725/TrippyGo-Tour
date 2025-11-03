@@ -7,10 +7,12 @@ import { toast } from "react-toastify";
 import {
   FaPlusCircle,
   FaSearch,
-  FaEdit,
+  FaEye,
   FaTrash,
   FaEllipsisV,
   FaMapMarkerAlt,
+  FaCalendar,
+  FaGlobe,
 } from "react-icons/fa";
 import useDebounce from "../../../hooks/useDebounce";
 import Pagination from "../../user/shared/Pagination";
@@ -24,6 +26,8 @@ const AllDestinations = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const debouncedSearch = useDebounce(searchTerm, 500);
   const [activeMenu, setActiveMenu] = useState(null);
+  const [selectedDestination, setSelectedDestination] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -87,6 +91,19 @@ const AllDestinations = () => {
         }
       }
     });
+  };
+
+  // View Destination Details
+  const handleView = (destination) => {
+    setSelectedDestination(destination);
+    setIsModalOpen(true);
+    setActiveMenu(null);
+  };
+
+  // Close modal
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedDestination(null);
   };
 
   // Toggle action menu
@@ -190,13 +207,13 @@ const AllDestinations = () => {
                         {activeMenu === data._id && (
                           <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 rounded-xl shadow-xl z-10 border border-blue-100 dark:border-blue-900 backdrop-blur-sm">
                             <div className="py-2">
-                              <Link
-                                to={`/admin-dashboard/edit-destination/${data._id}`}
-                                className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                              <button
+                                onClick={() => handleView(data)}
+                                className="flex w-full items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-blue-50 dark:hover:bg-blue-900/30"
                               >
-                                <FaEdit className="mr-3 text-blue-500" />
-                                Edit
-                              </Link>
+                                <FaEye className="mr-3 text-blue-500" />
+                                View Details
+                              </button>
                               <button
                                 onClick={() =>
                                   handleDelete(data._id, data.name)
@@ -236,6 +253,142 @@ const AllDestinations = () => {
           />
         )}
       </div>
+
+      {/* View Destination Modal */}
+      {isModalOpen && selectedDestination && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="bg-gradient-to-r from-blue-500 to-indigo-600 p-6 rounded-t-2xl">
+              <div className="flex justify-between items-start">
+                <h2 className="text-2xl font-bold text-white">
+                  {selectedDestination.name}
+                </h2>
+                <button
+                  onClick={closeModal}
+                  className="text-white/80 hover:text-white transition-colors text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6 space-y-6">
+              {/* Destination Image */}
+              <div className="flex justify-center">
+                <img
+                  src={
+                    selectedDestination.destinationImg ||
+                    "/api/placeholder/400/250"
+                  }
+                  alt={selectedDestination.name}
+                  className="w-full max-w-md h-64 object-cover rounded-xl shadow-lg border-2 border-blue-200 dark:border-blue-700"
+                />
+              </div>
+
+              {/* Destination Details */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <FaMapMarkerAlt className="text-blue-500 text-lg" />
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Name
+                      </p>
+                      <p className="font-semibold text-gray-800 dark:text-white">
+                        {selectedDestination.name}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <FaGlobe className="text-blue-500 text-lg" />
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Country
+                      </p>
+                      <p className="font-semibold text-gray-800 dark:text-white">
+                        {selectedDestination.country || "Not specified"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <FaCalendar className="text-blue-500 text-lg" />
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Created At
+                      </p>
+                      <p className="font-semibold text-gray-800 dark:text-white">
+                        {new Date(
+                          selectedDestination.createdAt
+                        ).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <FaCalendar className="text-blue-500 text-lg" />
+                    <div>
+                      <p className="text-sm text-gray-600 dark:text-gray-400">
+                        Updated At
+                      </p>
+                      <p className="font-semibold text-gray-800 dark:text-white">
+                        {new Date(
+                          selectedDestination.updatedAt
+                        ).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Description */}
+              {selectedDestination.description && (
+                <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
+                    Description
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                    {selectedDestination.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Additional fields can be added here based on your destination data structure */}
+              {selectedDestination.location && (
+                <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                  <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
+                    Location Details
+                  </h3>
+                  <p className="text-gray-600 dark:text-gray-300 text-sm">
+                    {selectedDestination.location}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+              <button
+                onClick={closeModal}
+                className="px-6 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors font-medium"
+              >
+                Close
+              </button>
+              <Link
+                to={`/admin-dashboard/edit-destination/${selectedDestination._id}`}
+                className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors font-medium"
+              >
+                Edit Destination
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
