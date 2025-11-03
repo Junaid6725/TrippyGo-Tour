@@ -4,6 +4,7 @@ import { adminMiddleware } from "../middlewares/roleMiddleware.js";
 import { upload } from "../middlewares/uploadMiddleware.js";
 import {
   createDestination,
+  deleteDestination,
   getDestinations,
 } from "../controllers/destinationController.js";
 
@@ -22,6 +23,13 @@ router.get(
   authMiddleware,
   adminMiddleware,
   getDestinations
+);
+
+router.delete(
+  "/delete-destination/:id",
+  authMiddleware,
+  adminMiddleware,
+  deleteDestination
 );
 
 export default router;
