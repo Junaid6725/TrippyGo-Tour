@@ -2,11 +2,14 @@ import React, { useEffect, useState } from "react";
 import CommonHeroSection from "../../components/user/shared/CommonHeroSection";
 import { Link, useParams } from "react-router-dom";
 import axios from "axios";
+import ReviewsSection from "./ReviewsSection";
+import { useSelector } from "react-redux";
 
 const Tour = () => {
   const { id } = useParams();
   const [singleTour, setSingleTour] = useState(null);
   const [loading, setLoading] = useState(true);
+  const token = useSelector((state) => state.auth.token);
 
   const fetchTour = async () => {
     try {
@@ -119,7 +122,7 @@ const Tour = () => {
                     </svg>
                   ))}
                   <span className="ml-2 text-sm text-gray-600">
-                    {singleTour.reviews?.length || 0} reviews
+                    {singleTour.reviews?.averageRating || 0} reviews
                   </span>
                 </div>
               </div>
@@ -132,6 +135,7 @@ const Tour = () => {
               </Link>
             </div>
           </div>
+          <ReviewsSection tourId={id} token={token} restrictAddReview={true} />
         </div>
       </section>
     </>

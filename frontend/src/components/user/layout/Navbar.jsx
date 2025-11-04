@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { MdMenu, MdClose } from "react-icons/md";
+import { MdMenu, MdClose, MdDashboard } from "react-icons/md";
 import { navItems } from "../../../data";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -12,7 +12,7 @@ export default function Navbar() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const { token } = useSelector((state) => state.auth);
+  const { token, role } = useSelector((state) => state.auth);
 
   const handleLogout = () => {
     Swal.fire({
@@ -29,6 +29,13 @@ export default function Navbar() {
     });
   };
 
+  const handleDashboardRedirect = () => {
+    if (role === "admin") {
+      navigate("/admin-dashboard");
+    } else {
+      navigate("/user-dashboard");
+    }
+  };
   return (
     <nav className="bg-white border-b border-gray-200 shadow w-full sticky top-0 z-50">
       <div className="max-w-screen-xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -102,14 +109,24 @@ export default function Navbar() {
                 </motion.div>
               </>
             ) : (
-              <motion.div whileHover={{ scale: 1.05 }}>
-                <button
-                  onClick={handleLogout}
-                  className="bg-sky-500 hover:bg-sky-600 text-white text-sm px-4 py-2 rounded-lg transition-all duration-200 hover:cursor-pointer"
+              <>
+                <motion.div whileHover={{ scale: 1.05 }}>
+                  <button
+                    onClick={handleLogout}
+                    className="bg-sky-500 hover:bg-sky-600 text-white text-sm px-4 py-2 rounded-lg transition-all duration-200 hover:cursor-pointer"
+                  >
+                    Logout
+                  </button>
+                </motion.div>
+                <motion.button
+                  onClick={handleDashboardRedirect}
+                  className="fixed bottom-6 right-6 bg-sky-500 text-white p-3 rounded-full shadow-lg hover:bg-sky-600"
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
                 >
-                  Logout
-                </button>
-              </motion.div>
+                  <MdDashboard size={22} />
+                </motion.button>
+              </>
             )}
           </div>
 
@@ -170,12 +187,22 @@ export default function Navbar() {
                   </Link>
                 </>
               ) : (
-                <button
-                  onClick={handleLogout}
-                  className="bg-sky-500 hover:bg-sky-600 text-white text-sm px-4 py-2 rounded-lg text-center transition-all duration-200 hover:cursor-pointer"
-                >
-                  Logout
-                </button>
+                <>
+                  <button
+                    onClick={handleLogout}
+                    className="bg-sky-500 hover:bg-sky-600 text-white text-sm px-4 py-2 rounded-lg text-center transition-all duration-200 hover:cursor-pointer"
+                  >
+                    Logout
+                  </button>
+                  <motion.button
+                    onClick={handleDashboardRedirect}
+                    className="fixed bottom-6 right-6 bg-sky-500 text-white p-3 rounded-full shadow-lg hover:bg-sky-600"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <MdDashboard size={22} />
+                  </motion.button>
+                </>
               )}
             </div>
           </motion.div>

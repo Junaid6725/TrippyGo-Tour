@@ -4,13 +4,13 @@ import Review from "./../models/reviewModel.js";
 
 export const addReview = async (req, res) => {
   try {
-    const { tourId } = req.params;
+    const { id } = req.params;
     const { rating, comment } = req.body;
     const userId = req.user?.id;
 
     const completedBooking = await Booking.findOne({
-      user: userId,
-      tour: tourId,
+      userId: userId,
+      tourId: id,
       bookingStatus: "completed",
     });
 
@@ -21,7 +21,7 @@ export const addReview = async (req, res) => {
       });
     }
 
-    const existingReview = await Review.findOne({ user: userId, tour: tourId });
+    const existingReview = await Review.findOne({ user: userId, tour: id });
     if (existingReview) {
       return res.status(400).json({
         success: false,
@@ -36,17 +36,16 @@ export const addReview = async (req, res) => {
       });
     }
 
+    const review = new Review({ user: userId, tour: id, rating, comment });
+    await review.save();
     const populatedReview = await Review.findById(review._id).populate(
       "user",
       "name email"
     );
 
-    const review = new Review({ user: userId, tour: tourId, rating, comment });
-    await review.save();
+    await Tour.findByIdAndUpdate(id, { $push: { reviews: review._id } });
 
-    await Tour.findByIdAndUpdate(tourId, { $push: { reviews: review._id } });
-
-    const tour = await Tour.findById(tourId).populate("reviews");
+    const tour = await Tour.findById(id).populate("reviews");
 
     const total = tour.reviews.reduce((sum, r) => sum + r.rating, 0);
     const avgRating = tour.reviews.length > 0 ? total / tour.reviews.length : 0;
@@ -57,10 +56,39 @@ export const addReview = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: "Review added successfully!",
-      review,
+      review: populatedReview,
       averageRating: tour.averageRating,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: "Failed to add review." });
+  }
+};
+
+export const getTourReviews = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const tour = await Tour.findById(id);
+    if (!tour) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Tour not found." });
+    }
+
+    const reviews = await Review.find({ tour: id })
+      .populate("user", "fullName email")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      success: true,
+      count: reviews.length,
+      reviews,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch reviews.",
+      error: error.message,
+    });
   }
 };
