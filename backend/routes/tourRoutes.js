@@ -34,7 +34,7 @@ router.get("/get-tours", getAllTours);
 
 router.get("/get-tour/:id", getTour);
 
-router.get("/destination", getToursByDestination);
+router.get("/tours/destination/:destinationId", getToursByDestination);
 
 router.get("/search-tour", searchTour);
 
