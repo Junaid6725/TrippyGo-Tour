@@ -1,6 +1,7 @@
 import React from "react";
 import { CiBookmark } from "react-icons/ci";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 const BookNowSection = () => {
   return (
@@ -29,13 +30,12 @@ const BookNowSection = () => {
               Limited time offer, don’t miss the opportunity
             </p>
 
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <Link
+              to="/tours"
               className="mt-6 inline-flex items-center bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-3 rounded-lg shadow-md transition gap-2"
             >
-              Book Now <CiBookmark className="text-2xl" />
-            </motion.button>
+             Book Now <CiBookmark className="text-2xl" />
+            </Link>
           </div>
         </motion.div>
 

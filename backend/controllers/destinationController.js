@@ -2,15 +2,26 @@ import Destination from "./../models/destinationModel.js";
 
 export const getDestinations = async (req, res) => {
   try {
-    const destinations = await Destination.find().sort({ createdAt: -1 });
-    if (!destinations.length) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Destinations not found" });
-    }
-    return res
-      .status(200)
-      .json({ success: true, destinations, count: destinations.length });
+    const page = parseInt(req.query.page) || 1;
+    let limit = parseInt(req.query.limit) || 4;
+    const skip = (page - 1) * limit;
+
+    const totalDestinations = await Destination.countDocuments();
+    const destinations = await Destination.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    const totalPages = Math.ceil(totalDestinations / limit);
+
+    return res.status(200).json({
+      success: true,
+      destinations,
+      currentPage: page,
+      totalPages,
+      totalDestinations,
+      count: destinations.length,
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -55,5 +66,46 @@ export const deleteDestination = async (req, res) => {
       .json({ success: true, message: "Destination successfully deleted!" });
   } catch (error) {
     return res.status(500).json({ message: "Failed to delete destination!" });
+  }
+};
+
+export const getAdminDestinations = async (req, res) => {
+  try {
+    // 🔹 Pagination
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 4;
+    const skip = (page - 1) * limit;
+
+    // 🔹 Search
+    const search = req.query.search || "";
+    const searchQuery = search
+      ? { name: { $regex: search, $options: "i" } } // assumes 'name' is your field
+      : {};
+
+    // 🔹 Count total destinations
+    const total = await Destination.countDocuments(searchQuery);
+
+    // 🔹 Fetch destinations
+    const allDestinations = await Destination.find(searchQuery)
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    // 🔹 Send response
+    return res.status(200).json({
+      success: true,
+      message: "Destinations fetched successfully!",
+      currentPage: page,
+      totalPages: Math.ceil(total / limit),
+      totalDestinations: total,
+      results: allDestinations.length,
+      destinations: allDestinations,
+    });
+  } catch (error) {
+    console.error("Error fetching destinations:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch destinations!",
+    });
   }
 };

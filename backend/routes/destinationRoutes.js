@@ -5,6 +5,7 @@ import { upload } from "../middlewares/uploadMiddleware.js";
 import {
   createDestination,
   deleteDestination,
+  getAdminDestinations,
   getDestinations,
 } from "../controllers/destinationController.js";
 
@@ -18,11 +19,13 @@ router.post(
   createDestination
 );
 
+router.get("/get-destinations", getDestinations);
+
 router.get(
-  "/get-destinations",
+  "/admin-destinations",
   authMiddleware,
   adminMiddleware,
-  getDestinations
+  getAdminDestinations
 );
 
 router.delete(

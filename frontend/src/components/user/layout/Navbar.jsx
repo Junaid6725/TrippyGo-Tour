@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
@@ -33,9 +34,14 @@ export default function Navbar() {
     if (role === "admin") {
       navigate("/admin-dashboard");
     } else {
-      navigate("/user-dashboard");
+      navigate("/user-dashboard/user-profile");
     }
   };
+
+  const getDashboardText = () => {
+    return role === "admin" ? "Admin Dashboard" : "User Dashboard";
+  };
+
   return (
     <nav className="bg-white border-b border-gray-200 shadow w-full sticky top-0 z-50">
       <div className="max-w-screen-xl mx-auto px-4 py-3 flex items-center justify-between">
@@ -118,14 +124,35 @@ export default function Navbar() {
                     Logout
                   </button>
                 </motion.div>
-                <motion.button
-                  onClick={handleDashboardRedirect}
-                  className="fixed bottom-6 right-6 bg-sky-500 text-white p-3 rounded-full shadow-lg hover:bg-sky-600"
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <MdDashboard size={22} />
-                </motion.button>
+
+                {/* Dashboard Button with Tooltip */}
+                <div className="fixed bottom-6 right-8 z-50">
+                  <motion.button
+                    onClick={handleDashboardRedirect}
+                    onMouseEnter={() => setShowTooltip(true)}
+                    onMouseLeave={() => setShowTooltip(false)}
+                    className="bg-sky-500 text-white p-3 rounded-full shadow-lg hover:bg-sky-600"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <MdDashboard size={22} />
+                  </motion.button>
+
+                  <AnimatePresence>
+                    {showTooltip && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 10, scale: 0.8 }}
+                        transition={{ duration: 0.2 }}
+                        className="absolute bottom-14 right-1/2 translate-x-1/2 bg-gray-800 text-white text-xs py-1 px-2 rounded-md whitespace-nowrap shadow-md"
+                      >
+                        {getDashboardText()}
+                        <div className="absolute top-full right-1/2 transform translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
               </>
             )}
           </div>
@@ -194,14 +221,38 @@ export default function Navbar() {
                   >
                     Logout
                   </button>
-                  <motion.button
-                    onClick={handleDashboardRedirect}
-                    className="fixed bottom-6 right-6 bg-sky-500 text-white p-3 rounded-full shadow-lg hover:bg-sky-600"
-                    whileHover={{ scale: 1.1 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <MdDashboard size={22} />
-                  </motion.button>
+
+                  {/* Mobile Dashboard Button with Tooltip */}
+                  <div className="relative">
+                    <motion.button
+                      onClick={handleDashboardRedirect}
+                      onMouseEnter={() => setShowTooltip(true)}
+                      onMouseLeave={() => setShowTooltip(false)}
+                      className="w-full bg-sky-500 hover:bg-sky-600 text-white text-sm px-4 py-2 rounded-lg text-center transition-all duration-200 hover:cursor-pointer flex items-center justify-center gap-2"
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <MdDashboard size={18} />
+                      {getDashboardText()}
+                    </motion.button>
+
+                    {/* Mobile Tooltip - Only show for the floating button, not the mobile menu button */}
+                    <AnimatePresence>
+                      {showTooltip && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 10, scale: 0.8 }}
+                          transition={{ duration: 0.2 }}
+                          className="absolute bottom-12 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white text-xs py-1 px-2 rounded-md whitespace-nowrap z-50"
+                        >
+                          {getDashboardText()}
+                          {/* Tooltip arrow */}
+                          <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-800"></div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
                 </>
               )}
             </div>
