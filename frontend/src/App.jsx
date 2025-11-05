@@ -32,6 +32,7 @@ import UserLayout from "./components/user/layout/UserLayout";
 import UserProfile from "./pages/userPages/UserProfile";
 import AdminDestinations from "./pages/adminPages/AdminDestinations";
 import AddDestination from "./components/admin/adminDestinationComponent/AddDestination";
+import DestinationTours from "./components/user/userHomePageComponent/DestinationsTours";
 
 function App() {
   const router = createBrowserRouter([
@@ -61,6 +62,10 @@ function App() {
         { path: "tours", element: <AllTours /> },
         { path: "tours/:id", element: <Tour /> },
         { path: "booking/:id", element: <Booking /> },
+        {
+          path: "tours/destination/:destinationId",
+          element: <DestinationTours />,
+        },
 
         {
           element: <ProtectedRoutes role="user" />,

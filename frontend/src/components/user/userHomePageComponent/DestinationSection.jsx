@@ -2,26 +2,36 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
+import { FaLongArrowAltRight } from "react-icons/fa";
+import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
+import DestinationCard from "./DestinationsCard";
 
 const DestinationSection = () => {
   const [destinations, setDestinations] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const limit = 4; // items per page — matches backend default
   const token = useSelector((state) => state.auth.token);
 
-  // Fetch destinations from backend
+  // Fetch destinations with pagination
   const fetchDestinations = async () => {
     try {
       setLoading(true);
       const res = await axios.get(
-        "http://localhost:8000/api/get-destinations",
+        `http://localhost:8000/api/get-destinations?page=${page}&limit=${limit}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
       if (res.data && Array.isArray(res.data.destinations)) {
         setDestinations(res.data.destinations);
+        setTotalPages(res.data.totalPages || 1);
       } else {
         setDestinations([]);
+        setTotalPages(1);
       }
     } catch (err) {
       console.error("Error fetching destinations:", err);
@@ -33,9 +43,9 @@ const DestinationSection = () => {
 
   useEffect(() => {
     fetchDestinations();
-  }, []);
+  }, [page]);
 
-  // Skeleton loader
+  // Skeleton loader for smooth UX
   const SkeletonLoader = () => (
     <section className="w-full py-12 px-4 bg-white">
       <div className="max-w-7xl mx-auto">
@@ -43,10 +53,10 @@ const DestinationSection = () => {
           <div className="h-12 bg-gray-200 rounded-lg w-64 mb-4 animate-pulse"></div>
           <div className="h-4 bg-gray-200 rounded w-96 animate-pulse"></div>
         </div>
-        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6">
-          {[...Array(6)].map((_, index) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {[...Array(limit)].map((_, index) => (
             <div key={index} className="animate-pulse">
-              <div className="bg-gray-200 h-48 xs:h-56 sm:h-64 rounded-2xl mb-3"></div>
+              <div className="bg-gray-200 h-56 rounded-2xl mb-3"></div>
               <div className="h-4 bg-gray-200 rounded w-3/4 mx-auto"></div>
             </div>
           ))}
@@ -55,9 +65,7 @@ const DestinationSection = () => {
     </section>
   );
 
-  if (loading) {
-    return <SkeletonLoader />;
-  }
+  if (loading) return <SkeletonLoader />;
 
   if (!destinations.length) {
     return (
@@ -91,7 +99,7 @@ const DestinationSection = () => {
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
-              className="text-2xl xs:text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 mb-2 sm:mb-3"
+              className="text-2xl md:text-4xl font-bold text-gray-800"
             >
               Popular <span className="text-blue-600">Destinations</span>
             </motion.h2>
@@ -105,56 +113,24 @@ const DestinationSection = () => {
             </motion.p>
           </div>
 
-          <button className="text-blue-600 hover:text-blue-700 font-semibold text-base sm:text-lg transition-all duration-300 hover:underline whitespace-nowrap">
-            See All Destinations →
-          </button>
+          <motion.div whileHover={{ x: 5 }} transition={{ duration: 0.3 }}>
+            <Link
+              to="/destinations"
+              className="group flex items-center gap-1 text-sm md:text-lg text-blue-600 hover:text-blue-800 font-medium cursor-pointer transition-all duration-300 relative"
+            >
+              See All
+              <FaLongArrowAltRight className="transform transition-transform duration-300 group-hover:translate-x-1" />
+              <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+            </Link>
+          </motion.div>
         </div>
 
-        {/* Grid Layout with optimized heights */}
-        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 sm:gap-6">
+        {/* Grid Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           {destinations.map((item, index) => (
-            <motion.div
-              key={item._id}
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
-              whileHover={{ scale: 1.02, y: -4 }}
-              className="group relative cursor-pointer"
-            >
-              {/* Image Container with responsive heights */}
-              <div className="relative overflow-hidden rounded-xl sm:rounded-2xl mb-3 shadow-md hover:shadow-xl transition-all duration-300">
-                <img
-                  src={item.destinationImg}
-                  alt={item.name}
-                  className="w-full h-48 xs:h-56 sm:h-64 object-cover transition-transform duration-500 group-hover:scale-110"
-                  onError={(e) =>
-                    (e.target.src = `https://picsum.photos/400/400?random=${item._id}`)
-                  }
-                />
-                {/* Enhanced Gradient Overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-
-                {/* Optional: Add a subtle badge for premium destinations */}
-                {item.isPremium && (
-                  <div className="absolute top-3 left-3 bg-yellow-500 text-white text-xs font-bold px-2 py-1 rounded-full">
-                    Premium
-                  </div>
-                )}
-              </div>
-
-              {/* Destination Name with better typography */}
-              <div className="text-center px-1 sm:px-2">
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors duration-300 line-clamp-2 leading-tight">
-                  {item.name}
-                </h3>
-                {/* Optional: Add location/country */}
-                {item.country && (
-                  <p className="text-xs sm:text-sm text-gray-500 mt-1 line-clamp-1">
-                    {item.country}
-                  </p>
-                )}
-              </div>
-            </motion.div>
+            <Link to={`/tours/destination/${item._id}`} key={item._id}>
+              <DestinationCard key={item._id} item={item} index={index} />
+            </Link>
           ))}
         </div>
       </div>

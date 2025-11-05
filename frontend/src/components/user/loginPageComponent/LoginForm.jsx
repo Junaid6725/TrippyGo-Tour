@@ -39,7 +39,7 @@ const LoginForm = () => {
         if (response.data.user.role === "admin") {
           navigate("/admin-dashboard");
         } else {
-          navigate("/user-dashboard");
+          navigate("/user-dashboard/user-profile");
         }
       });
     } catch (error) {

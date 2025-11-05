@@ -12,10 +12,6 @@ export const navItems = [
     path: "/destinations",
   },
   {
-    navlink: "Guides",
-    path: "/guides",
-  },
-  {
     navlink: "Contact",
     path: "/contact",
   },

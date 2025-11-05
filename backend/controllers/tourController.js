@@ -216,8 +216,8 @@ export const getToursByDestination = async (req, res) => {
     }
 
     // Fetch tours with destination populated
-    const tours = await Tour.find({ destination: destinationId })
-      .populate("destination", "name image")
+    const tours = await Tour.find({ destinationId })
+      .populate("destinationId", "name image")
       .sort({ createdAt: -1 });
 
     if (!tours.length) {

@@ -10,7 +10,7 @@ const AllTours = () => {
 
   // Pagination states
   const [page, setPage] = useState(1);
-  const limit = 4; // har page pe kitne tours dikhane hain
+  const limit = 8; // har page pe kitne tours dikhane hain
   const [totalPages, setTotalPages] = useState(1);
 
   const fetchTours = async () => {

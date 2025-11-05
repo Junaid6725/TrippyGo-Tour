@@ -32,22 +32,24 @@ const AllDestinations = () => {
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const destinationsPerPage = 5;
+  const destinationsPerPage = 4;
   const [totalDestinations, setTotalDestinations] = useState(0);
 
-  // Fetch all destinations
+  // ✅ Fetch destinations from backend
   const fetchDestinations = async () => {
     try {
       setLoading(true);
       const response = await axios.get(
-        `http://localhost:8000/api/get-destinations`,
+        `http://localhost:8000/api/admin-destinations?search=${debouncedSearch}&page=${currentPage}&limit=${destinationsPerPage}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-      setDestinations(response.data.destinations || []);
-      setTotalPages(response.data.totalPages || 1);
-      setTotalDestinations(response.data.total || 0);
+
+      const data = response.data;
+      setDestinations(data.destinations || []);
+      setTotalPages(data.totalPages || 1);
+      setTotalDestinations(data.totalDestinations || 0);
     } catch (error) {
       console.log(error);
       toast.error(
@@ -58,11 +60,12 @@ const AllDestinations = () => {
     }
   };
 
+  // ✅ Fetch whenever page or search term changes
   useEffect(() => {
     fetchDestinations();
-  }, []);
+  }, [debouncedSearch, currentPage]);
 
-  // Delete Destination
+  // ✅ Delete Destination
   const handleDelete = async (id, name) => {
     Swal.fire({
       title: "Are you sure?",
@@ -93,20 +96,19 @@ const AllDestinations = () => {
     });
   };
 
-  // View Destination Details
+  // ✅ View Destination Details
   const handleView = (destination) => {
     setSelectedDestination(destination);
     setIsModalOpen(true);
     setActiveMenu(null);
   };
 
-  // Close modal
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedDestination(null);
   };
 
-  // Toggle action menu
+  // ✅ Toggle action menu
   const toggleMenu = (id, e) => {
     e.stopPropagation();
     setActiveMenu(activeMenu === id ? null : id);
@@ -275,7 +277,6 @@ const AllDestinations = () => {
 
             {/* Modal Content */}
             <div className="p-6 space-y-6">
-              {/* Destination Image */}
               <div className="flex justify-center">
                 <img
                   src={
@@ -287,7 +288,6 @@ const AllDestinations = () => {
                 />
               </div>
 
-              {/* Destination Details */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-4">
                   <div className="flex items-center gap-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
@@ -346,7 +346,6 @@ const AllDestinations = () => {
                 </div>
               </div>
 
-              {/* Description */}
               {selectedDestination.description && (
                 <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
                   <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
@@ -358,7 +357,6 @@ const AllDestinations = () => {
                 </div>
               )}
 
-              {/* Additional fields can be added here based on your destination data structure */}
               {selectedDestination.location && (
                 <div className="bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
                   <h3 className="font-semibold text-gray-800 dark:text-white mb-2">
@@ -369,22 +367,6 @@ const AllDestinations = () => {
                   </p>
                 </div>
               )}
-            </div>
-
-            {/* Modal Footer */}
-            <div className="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
-              <button
-                onClick={closeModal}
-                className="px-6 py-2 text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors font-medium"
-              >
-                Close
-              </button>
-              <Link
-                to={`/admin-dashboard/edit-destination/${selectedDestination._id}`}
-                className="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors font-medium"
-              >
-                Edit Destination
-              </Link>
             </div>
           </div>
         </div>

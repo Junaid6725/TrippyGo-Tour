@@ -4,7 +4,6 @@ import { FaHome, FaUser, FaInfoCircle } from "react-icons/fa";
 import { motion } from "framer-motion";
 
 const menus = [
-  { name: "Home", path: "", icon: <FaHome className="text-2xl" /> },
   {
     name: "Profile",
     path: "user-profile",
