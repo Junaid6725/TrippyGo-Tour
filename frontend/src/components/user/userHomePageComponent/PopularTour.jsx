@@ -4,17 +4,16 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
+import { getAllTours } from "../../../services/tourService";
 
 export default function PopularTour() {
   const [tours, setTours] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchTours = async () => {
+  const fetchTours = async (page = 1, limit = 8) => {
     try {
-      const response = await axios.get(
-        `http://localhost:8000/api/get-tours?page=1&limit=4`
-      );
-      setTours(response.data.tours || []);
+      const res = await getAllTours(page, limit);
+      setTours(res?.tours || []);
     } catch (error) {
       console.error("Failed to fetch tours", error);
     } finally {

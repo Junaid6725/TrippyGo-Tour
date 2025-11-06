@@ -4,6 +4,7 @@ import { useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import Swal from "sweetalert2";
+import { sendContactMessage } from "../../../services/contactService";
 
 const ContactForm = () => {
   const navigate = useNavigate();
@@ -50,17 +51,15 @@ const ContactForm = () => {
 
   const submitData = async (data) => {
     try {
-      const response = await axios
-        .post("http://localhost:8000/api/contact", data)
-        .then(() => {
-          Swal.fire({
-            icon: "success",
-            title: "Query Sent",
-            text: "Your Query Sent to Admin!",
-            confirmButtonColor: "#2563eb",
-            confirmButtonText: "Ok",
-          });
+      const res = await sendContactMessage(data).then(() => {
+        Swal.fire({
+          icon: "success",
+          title: "Query Sent",
+          text: "Your Query Sent to Admin!",
+          confirmButtonColor: "#2563eb",
+          confirmButtonText: "Ok",
         });
+      });
       navigate("/");
     } catch (error) {
       console.log(error);

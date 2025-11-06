@@ -9,6 +9,8 @@ import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import Swal from "sweetalert2";
 import ReviewsSection from "./ReviewsSection";
+import { getTourByIdService } from "./../../services/tourService";
+import { createBooking } from "../../services/bookingService";
 
 const Booking = () => {
   const [tour, setTour] = useState(null);
@@ -26,13 +28,8 @@ const Booking = () => {
   // Fetch tour details
   const getTourById = async () => {
     try {
-      const response = await axios.get(
-        `http://localhost:8000/api/get-tour/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setTour(response.data.singleTour || null);
+      const res = await getTourByIdService(id);
+      setTour(res?.singleTour || null);
     } catch (error) {
       console.log("Error fetching tour:", error);
     }
@@ -44,11 +41,7 @@ const Booking = () => {
 
   const handleBooking = async (data) => {
     try {
-      await axios.post(`http://localhost:8000/api/booking-tour/${id}`, data, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      await createBooking(id, data, token);
       Swal.fire({
         icon: "success",
         iconColor: "green",

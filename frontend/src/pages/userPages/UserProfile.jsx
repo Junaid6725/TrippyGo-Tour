@@ -21,6 +21,12 @@ import {
 import { useForm } from "react-hook-form";
 import { useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
+import {
+  changePasswordService,
+  createProfileService,
+  getProfileService,
+  updateProfileService,
+} from "../../services/profileService";
 
 const UserProfile = () => {
   const token = useSelector((state) => state.auth.token);
@@ -31,7 +37,8 @@ const UserProfile = () => {
   const [showChangePassword, setShowChangePassword] = useState(false);
   const [userData, setUserData] = useState(null);
 
-  const { register, handleSubmit, reset, watch, control } = useForm();
+  const { register, handleSubmit, reset, watch, resetField, control } =
+    useForm();
   const profileImage = watch("profileImage");
 
   const getInitial = () => {
@@ -69,41 +76,36 @@ const UserProfile = () => {
   // Fetch profile from backend
   const fetchProfile = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:8000/api/get-profile",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const res = await getProfileService(token);
 
-      if (response.data.success) {
-        if (response.data.profile) {
+      if (res?.success) {
+        if (res?.profile) {
           // Profile exists - dono data set karo
-          setProfile(response.data.profile);
-          setUserData(response.data.user);
+          setProfile(res?.profile);
+          setUserData(res?.user);
 
           // Form ko reset karo with existing data
           reset({
-            about: response.data.profile.about || "",
-            location: response.data.profile.location || "",
-            travelerType: response.data.profile.travelerType || "",
-            fullName: response.data.user?.fullName || "",
-            email: response.data.user?.email || "",
-            phoneNumber: response.data.user?.phoneNumber || "",
+            about: res?.profile.about || "",
+            location: res?.profile.location || "",
+            travelerType: res?.profile.travelerType || "",
+            fullName: res?.user?.fullName || "",
+            email: res?.user?.email || "",
+            phoneNumber: res?.user?.phoneNumber || "",
           });
         } else {
           // Profile doesn't exist, but user data is available
           setProfile(null);
-          setUserData(response.data.user);
+          setUserData(res?.user);
 
           // Form ko reset karo with user data only
           reset({
             about: "",
             location: "",
             travelerType: "",
-            fullName: response.data.user?.fullName || "",
-            email: response.data.user?.email || "",
-            phoneNumber: response.data.user?.phoneNumber || "",
+            fullName: res?.user?.fullName || "",
+            email: res?.user?.email || "",
+            phoneNumber: res?.user?.phoneNumber || "",
           });
         }
       } else {
@@ -164,51 +166,41 @@ const UserProfile = () => {
         formData.append("profileImage", data.profileImage[0]);
       }
 
-      const endpoint = profile ? "/update-profile" : "/create-profile";
-      const method = profile ? "put" : "post";
+      let res;
+      if (profile) {
+        res = await updateProfileService(formData, token);
+      } else {
+        res = await createProfileService(formData, token);
+      }
 
-      const response = await axios({
-        url: `http://localhost:8000/api${endpoint}`,
-        method,
-        data: formData,
-        headers: {
-          "Content-Type": "multipart/form-data",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.data.success) {
-        alert(response.data.message);
+      if (res.success) {
+        alert(res.message);
         setShowForm(false);
         setImagePreview(null);
         fetchProfile();
       } else {
-        alert(response.data.message || "Something went wrong");
+        alert(res.message || "Something went wrong");
       }
     } catch (error) {
       console.error("Submit profile error:", error);
-      alert(
-        error.response?.data?.message || "Error saving profile. Check console."
-      );
+      alert(error.res?.data?.message || "Error saving profile. Check console.");
     }
   };
 
   // Change password function
   const handleChangePassword = async (passwordData) => {
     try {
-      const response = await axios.put(
-        "http://localhost:8000/api/change-password",
-        passwordData,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const res = await changePasswordService(passwordData, token);
 
-      if (response.data.success) {
+      if (res?.success) {
         alert("Password changed successfully!");
         setShowChangePassword(false);
+
+        resetField("currentPassword");
+        resetField("newPassword");
+        resetField("confirmPassword");
       } else {
-        alert(response.data.message || "Failed to change password");
+        alert(res?.message || "Failed to change password");
       }
     } catch (error) {
       console.error("Change password error:", error);

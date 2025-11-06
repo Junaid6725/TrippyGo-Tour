@@ -17,6 +17,10 @@ import {
 import useDebounce from "../../../hooks/useDebounce";
 import Pagination from "../../user/shared/Pagination";
 import SubtleSpinner from "../../user/shared/SubtleSpinner";
+import {
+  deleteDestination,
+  getAdminDestinations,
+} from "../../../services/destinationService";
 
 const AllDestinations = () => {
   const token = useSelector((state) => state.auth.token);
@@ -39,14 +43,12 @@ const AllDestinations = () => {
   const fetchDestinations = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        `http://localhost:8000/api/admin-destinations?search=${debouncedSearch}&page=${currentPage}&limit=${destinationsPerPage}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+      const data = await getAdminDestinations(
+        debouncedSearch,
+        currentPage,
+        destinationsPerPage
       );
 
-      const data = response.data;
       setDestinations(data.destinations || []);
       setTotalPages(data.totalPages || 1);
       setTotalDestinations(data.totalDestinations || 0);
@@ -80,12 +82,7 @@ const AllDestinations = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.delete(
-            `http://localhost:8000/api/delete-destination/${id}`,
-            {
-              headers: { Authorization: `Bearer ${token}` },
-            }
-          );
+          await deleteDestination(id, token);
           toast.success("Destination deleted successfully!");
           fetchDestinations();
         } catch (error) {

@@ -8,6 +8,8 @@ import { button } from "framer-motion/client";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { getAllDestinations } from "../../../services/destinationService";
+import { createTour } from "../../../services/tourService";
 
 const AddTour = () => {
   const [count, setCount] = useState(1);
@@ -25,13 +27,8 @@ const AddTour = () => {
 
   const fetchDestinations = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:8000/api/get-destinations",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setDestinations(response.data?.destinations || []);
+      const res = await getAllDestinations();
+      setDestinations(res?.destinations || []);
     } catch (error) {
       console.log(error);
     }
@@ -62,17 +59,8 @@ const AddTour = () => {
         formData.append("tourImg", data.tourImg[0]);
       }
 
-      const createTour = await axios.post(
-        `http://localhost:8000/api/create-tour`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token} `,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-      setTour(createTour.data.newTour || null);
+      const res = await createTour(formData);
+      setTour(res?.newTour || null);
       toast.success("Tour created successfully!");
       navigate("/admin-dashboard/tour");
     } catch (error) {

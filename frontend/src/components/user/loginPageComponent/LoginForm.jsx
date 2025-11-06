@@ -7,6 +7,7 @@ import Swal from "sweetalert2";
 import { useDispatch } from "react-redux";
 import { login } from "./../../../reduxToolkit/slices/authSlices/authSlices.js";
 import { motion } from "framer-motion";
+import { loginUser } from "../../../services/authService";
 
 const LoginForm = () => {
   const {
@@ -20,10 +21,7 @@ const LoginForm = () => {
 
   const submitData = async (data) => {
     try {
-      const response = await axios.post(
-        "http://localhost:8000/api/login",
-        data
-      );
+      const response = await loginUser(data);
 
       dispatch(
         login({ token: response.data.token, role: response.data.user.role })

@@ -6,6 +6,7 @@ import {
   createDestination,
   deleteDestination,
   getAdminDestinations,
+  getAllDestinations,
   getDestinations,
 } from "../controllers/destinationController.js";
 
@@ -33,6 +34,13 @@ router.delete(
   authMiddleware,
   adminMiddleware,
   deleteDestination
+);
+
+router.get(
+  "/get-all-destinations",
+  authMiddleware,
+  adminMiddleware,
+  getAllDestinations
 );
 
 export default router;

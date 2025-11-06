@@ -7,6 +7,8 @@ import StepThree from "./multiStepForm/StepThree";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import { getAllDestinations } from "../../../services/destinationService";
+import { getTourByIdService, updateTour } from "../../../services/tourService";
 
 const EditTour = () => {
   const [count, setCount] = useState(1);
@@ -25,36 +27,26 @@ const EditTour = () => {
   const token = useSelector((state) => state.auth.token);
   const { id } = useParams();
 
-  const getAllDestinations = async () => {
+  const getAllDestination = async () => {
     try {
-      const res = await axios.get(
-        "http://localhost:8000/api/get-destinations",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setDestinations(res.data.destinations || []);
+      const res = await getAllDestinations();
+      setDestinations(res?.destinations || []);
     } catch (err) {
       console.error("Error fetching destinations:", err);
     }
   };
 
   useEffect(() => {
-    if (!destinations.length) getAllDestinations();
+    if (!destinations.length) getAllDestination();
     if (id) getTourById();
   }, [id]);
 
   // ✅ Fetch tour by ID
   const getTourById = async () => {
     try {
-      const response = await axios.get(
-        `http://localhost:8000/api/get-tour/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const res = await getTourByIdService(id);
 
-      if (response.data.singleTour) {
+      if (res?.singleTour) {
         const tourData = response.data.singleTour;
 
         // Convert arrays into comma-separated strings for form inputs
@@ -107,18 +99,9 @@ const EditTour = () => {
         formData.append("tourImg", data.tourImg[0]);
       }
 
-      const response = await axios.put(
-        `http://localhost:8000/api/update-tour/${id}`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const res = await updateTour(id, formData);
 
-      if (response.data.success) {
+      if (res?.success) {
         toast.success("Tour updated successfully!");
         navigate("/admin-dashboard/tour");
       }

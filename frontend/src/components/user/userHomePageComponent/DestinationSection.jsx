@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { FaLongArrowAltRight } from "react-icons/fa";
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
 import DestinationCard from "./DestinationsCard";
+import { getDestinations } from "../../../services/destinationService";
 
 const DestinationSection = () => {
   const [destinations, setDestinations] = useState([]);
@@ -13,18 +14,12 @@ const DestinationSection = () => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const limit = 4; // items per page — matches backend default
-  const token = useSelector((state) => state.auth.token);
 
   // Fetch destinations with pagination
   const fetchDestinations = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(
-        `http://localhost:8000/api/get-destinations?page=${page}&limit=${limit}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const res = await getDestinations(page, limit);
 
       if (res.data && Array.isArray(res.data.destinations)) {
         setDestinations(res.data.destinations);

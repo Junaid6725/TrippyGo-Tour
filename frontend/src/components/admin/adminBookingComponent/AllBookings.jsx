@@ -26,6 +26,7 @@ import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import useDebounce from "../../../hooks/useDebounce";
 import SubtleSpinner from "../../user/shared/SubtleSpinner";
 import Pagination from "../../user/shared/Pagination";
+import { getBookingsService, updateBookingStatusService } from "../../../services/bookingService";
 
 const AllBookings = () => {
   const [bookings, setBookings] = useState([]);
@@ -111,29 +112,24 @@ const AllBookings = () => {
     try {
       setIsLoading(true);
 
-      const response = await axios.get(
-        `http://localhost:8000/api/get-bookings?page=${currentPage}&limit=${bookingsPerPage}&search=${debouncedSearch}&status=${
-          statusFilter !== "All" ? statusFilter : ""
-        }`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Cache-Control": "no-cache",
-          },
-        }
-      );
+      const res = await getBookingsService(token, {
+        page: currentPage,
+        limit: bookingsPerPage,
+        search: debouncedSearch,
+        status: statusFilter !== "All" ? statusFilter : "",
+      });
 
-      if (response.data.success) {
-        setBookings(response.data.bookings || []);
-        setTotalPages(response.data.totalPages || 1);
-        setPendingStatus(response.data.pending);
-        setConfirmedStatus(response.data.confirmed);
-        setCompletedStatus(response.data.completed);
-        setRejectedStatus(response.data.rejected);
-        setCancelledStatus(response.data.cancelled);
-        setExpiredStatus(response.data.expired);
+      if (res?.success) {
+        setBookings(res?.bookings || []);
+        setTotalPages(res?.totalPages || 1);
+        setPendingStatus(res?.pending);
+        setConfirmedStatus(res?.confirmed);
+        setCompletedStatus(res?.completed);
+        setRejectedStatus(res?.rejected);
+        setCancelledStatus(res?.cancelled);
+        setExpiredStatus(res?.expired);
 
-        setTotalBookings(response.data.total || 0);
+        setTotalBookings(res?.total || 0);
       } else {
         setBookings([]);
         setTotalPages(1);
@@ -166,13 +162,13 @@ const AllBookings = () => {
 
       const oldStatus = bookingToUpdate.bookingStatus;
 
-      const response = await axios.put(
-        `http://localhost:8000/api/update-booking/${bookingId}`,
+      const res = await updateBookingStatusService(
+        bookingId,
         { bookingStatus: newStatus },
-        { headers: { Authorization: `Bearer ${token}` } }
+        token
       );
 
-      if (response.data.success) {
+      if (res?.success) {
         setBookings((prev) =>
           prev.map((b) =>
             b._id === bookingId ? { ...b, bookingStatus: newStatus } : b

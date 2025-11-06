@@ -5,6 +5,7 @@ import { FaEye, FaEyeSlash } from "react-icons/fa";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { motion } from "framer-motion";
+import { registerUser } from "../../../services/authService";
 
 const RegisterForm = () => {
   const {
@@ -20,7 +21,7 @@ const RegisterForm = () => {
 
   const submitData = async (data) => {
     try {
-      await axios.post("http://localhost:8000/api/register", data);
+      const res = await registerUser(data);
       Swal.fire({
         icon: "success",
         title: "Successfully Registered",

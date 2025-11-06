@@ -182,6 +182,11 @@ export const getTour = async (req, res) => {
 export const searchTour = async (req, res) => {
   try {
     const { location, maxPrice, minPrice, groupSize } = req.query;
+
+    if (!location && !minPrice && !maxPrice && !groupSize) {
+      return res.status(400).json({ message: "No filters provided." });
+    }
+
     let query = {};
 
     if (location) {
