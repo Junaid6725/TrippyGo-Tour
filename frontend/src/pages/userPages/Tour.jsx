@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import axios from "axios";
 import ReviewsSection from "./ReviewsSection";
 import { useSelector } from "react-redux";
+import { getTourByIdService } from "../../services/tourService";
 
 const Tour = () => {
   const { id } = useParams();
@@ -13,11 +14,9 @@ const Tour = () => {
 
   const fetchTour = async () => {
     try {
-      const response = await axios.get(
-        `http://localhost:8000/api/get-tour/${id}`
-      );
+      const res = await getTourByIdService(id);
 
-      setSingleTour(response.data.singleTour);
+      setSingleTour(res?.singleTour);
     } catch (error) {
       console.error("Failed to fetch tour", error);
     } finally {

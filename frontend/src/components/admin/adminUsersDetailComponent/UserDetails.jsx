@@ -20,6 +20,7 @@ import useDebounce from "../../../hooks/useDebounce";
 import { FaChevronLeft, FaChevronRight, FaSearch } from "react-icons/fa";
 import SubtleSpinner from "../../user/shared/SubtleSpinner";
 import Pagination from "../../user/shared/Pagination";
+import { getAllUsers } from "../../../services/userService";
 
 const UserDetails = () => {
   const [users, setUsers] = useState([]);
@@ -38,16 +39,16 @@ const UserDetails = () => {
   const fetchUsers = async () => {
     try {
       setIsLoading(true);
-      const response = await axios.get(
-        `http://localhost:8000/api/get-users?page=${currentPage}&limit=${usersPerPage}&search=${debouncedSearch}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+      const res = await getAllUsers(
+        token,
+        currentPage,
+        usersPerPage,
+        debouncedSearch
       );
-      setUsers(response.data.users);
-      setTotalPages(response.data.totalPages);
-      setCurrentPage(response.data.page);
-      setTotalUsers(response.data.total || 0);
+      setUsers(res?.users);
+      setTotalPages(res?.totalPages);
+      setCurrentPage(res?.page);
+      setTotalUsers(res?.total || 0);
     } catch (error) {
       console.error("Error fetching users:", error);
       toast.error("Failed to load users");

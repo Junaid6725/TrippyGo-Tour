@@ -3,6 +3,8 @@ import CommonHeroSection from "../../components/user/shared/CommonHeroSection";
 import axios from "axios";
 import { MdKeyboardArrowLeft, MdKeyboardArrowRight } from "react-icons/md";
 import TourCard from "../../components/user/userHomePageComponent/TourCard";
+import TourSearchBar from "./TourSearchBar";
+import { getAllTours } from "../../services/tourService";
 
 const AllTours = () => {
   const [tours, setTours] = useState([]);
@@ -16,11 +18,9 @@ const AllTours = () => {
   const fetchTours = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        `http://localhost:8000/api/get-tours?page=${page}&limit=${limit}`
-      );
+      const res = await getAllTours(page, limit);
 
-      setTours(response.data.tours || []);
+      setTours(res?.tours || []);
       setTotalPages(response.data.totalPages || 1);
     } catch (error) {
       console.error("Failed to fetch tours", error);
@@ -36,6 +36,7 @@ const AllTours = () => {
   return (
     <>
       <CommonHeroSection title="Tour" />
+      <TourSearchBar />
       <div className="container mx-auto px-4 py-10">
         <h2 className="text-2xl font-bold text-center mb-8">All Tours</h2>
 

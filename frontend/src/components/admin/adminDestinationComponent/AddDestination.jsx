@@ -11,6 +11,7 @@ import {
   FaUmbrellaBeach,
 } from "react-icons/fa";
 import { useSelector } from "react-redux";
+import { createDestination } from "../../../services/destinationService";
 
 const AddDestination = () => {
   const {
@@ -32,16 +33,7 @@ const AddDestination = () => {
         formData.append("destinationImg", data.destinationImg[0]);
       }
 
-      const response = await axios.post(
-        "http://localhost:8000/api/create-destination",
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token} `,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      const response = await createDestination(formData);
 
       if (response.data.success) {
         Swal.fire({

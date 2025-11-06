@@ -10,6 +10,7 @@ import {
 } from "react-icons/fa";
 import Swal from "sweetalert2";
 import axios from "axios";
+import { addTourReview, getTourReviews } from "../../services/reviewService";
 
 const ReviewsSection = ({ tourId, token, restrictAddReview = false }) => {
   const [reviews, setReviews] = useState([]);
@@ -28,13 +29,8 @@ const ReviewsSection = ({ tourId, token, restrictAddReview = false }) => {
   const getReviews = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(
-        `http://localhost:8000/api/tours/${tourId}/reviews`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setReviews(res.data.reviews || []);
+      const res = await await getTourReviews(tourId, token);
+      setReviews(res?.reviews || []);
     } catch (err) {
       console.error("Error fetching reviews:", err);
     } finally {
@@ -46,13 +42,9 @@ const ReviewsSection = ({ tourId, token, restrictAddReview = false }) => {
   const handleAddReview = async (data) => {
     setSubmitting(true);
     try {
-      const res = await axios.post(
-        `http://localhost:8000/api/tour/${tourId}/create-review`,
-        data,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const res = await addTourReview(tourId, data, token);
 
-      setReviews((prev) => [res.data.review, ...prev]);
+      setReviews((prev) => [res?.review, ...prev]);
       reset();
       setShowForm(false);
 

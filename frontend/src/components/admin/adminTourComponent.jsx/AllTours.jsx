@@ -23,6 +23,7 @@ import {
 import useDebounce from "../../../hooks/useDebounce";
 import SubtleSpinner from "./../../user/shared/SubtleSpinner";
 import Pagination from "../../user/shared/Pagination";
+import { deleteTour, getAllTours } from "../../../services/tourService";
 
 const AllTours = () => {
   const token = useSelector((state) => state.auth.token);
@@ -35,24 +36,19 @@ const AllTours = () => {
   const [totalTours, setTotalTours] = useState("");
 
   // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
+  const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const toursPerPage = 5;
+  const limit = 5;
 
   // Fetch tours from backend with pagination
   const fetchTour = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        `http://localhost:8000/api/get-tours?page=${currentPage}&limit=${toursPerPage}&search=${debouncedSearch}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
+      const res = await getAllTours(page, limit);
 
-      setTours(response.data.tours || []);
-      setTotalPages(response.data.totalPages || 1);
-      setTotalTours(response.data.total || 0);
+      setTours(res?.tours || []);
+      setTotalPages(res?.totalPages || 1);
+      setTotalTours(res?.total || 0);
     } catch (error) {
       console.log(error);
       setTours([]);
@@ -64,7 +60,7 @@ const AllTours = () => {
 
   useEffect(() => {
     fetchTour();
-  }, [currentPage, debouncedSearch]);
+  }, [page, debouncedSearch]);
 
   // Delete Tour
   const handleDelete = async (id, title) => {
@@ -86,9 +82,7 @@ const AllTours = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.delete(`http://localhost:8000/api/delete-tour/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          await deleteTour(id, token);
           toast.success("Tour deleted successfully!");
           fetchTour();
         } catch (error) {
@@ -391,12 +385,12 @@ const AllTours = () => {
         {/* Pagination */}
         {totalPages > 1 && (
           <Pagination
-            currentPage={currentPage}
+            page={page}
             totalPages={totalPages}
             totalItems={totalTours}
             itemsPerPage={toursPerPage}
             currentItems={tours}
-            onPageChange={(page) => setCurrentPage(page)}
+            onPageChange={(page) => setPage(page)}
           />
         )}
       </div>

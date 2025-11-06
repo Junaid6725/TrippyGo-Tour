@@ -4,6 +4,9 @@ import { motion } from "framer-motion";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 import { useState } from "react";
+import TourCard from "./../../components/user/userHomePageComponent/TourCard";
+import api from "../../api/axios";
+import { searchTour } from "../../services/tourService";
 
 export default function TourSearchBar() {
   const { register, handleSubmit, reset } = useForm();
@@ -14,20 +17,25 @@ export default function TourSearchBar() {
 
   // Handle search
   const onSubmit = async (data) => {
+    if (!data.location && !data.minPrice && !data.maxPrice && !data.groupSize) {
+      setError("Please fill at least one field to search.");
+      return;
+    }
     try {
       setLoading(true);
       setError("");
       setSearched(true);
       setResults([]); // reset old results
 
-      const res = await axios.get("http://localhost:8000/api/search-tour", {
-        params: data, // send form values as query params
-      });
+      const res = await searchTour(data);
 
-      setResults(res.data.tours || []); // save API response
+      setResults(res?.tours || []); // save API response
     } catch (err) {
       console.error("Search failed:", err);
-      setError("Something went wrong while searching tours.");
+      setError(
+        err.response?.data?.message ||
+          "Something went wrong while searching tours."
+      );
     } finally {
       setLoading(false);
     }
@@ -49,7 +57,7 @@ export default function TourSearchBar() {
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6 }}
-            className="flex items-start gap-4"
+            className="flex items-center gap-4"
           >
             <div className="bg-blue-100 p-3 rounded-full mt-1">
               <FaMapMarkerAlt className="text-blue-600 text-xl" />
@@ -72,7 +80,7 @@ export default function TourSearchBar() {
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="flex items-start gap-4"
+            className="flex items-center gap-4"
           >
             <div className="bg-blue-100 p-3 rounded-full mt-1">
               <CiBookmarkMinus className="text-blue-600 text-xl" />
@@ -95,7 +103,7 @@ export default function TourSearchBar() {
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="flex items-start gap-4"
+            className="flex items-center gap-4"
           >
             <div className="bg-blue-100 p-3 rounded-full mt-1">
               <CiBookmarkPlus className="text-blue-600 text-xl" />
@@ -118,7 +126,7 @@ export default function TourSearchBar() {
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, delay: 0.3 }}
-            className="flex items-start gap-4"
+            className="flex items-center gap-4"
           >
             <div className="bg-blue-100 p-3 rounded-full mt-1">
               <FaUsers className="text-blue-600 text-xl" />
@@ -162,33 +170,43 @@ export default function TourSearchBar() {
         {error && <p className="text-red-500">{error}</p>}
 
         {!loading && results.length > 0 && (
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+            variants={{
+              hidden: { opacity: 0 },
+              show: {
+                opacity: 1,
+                transition: { staggerChildren: 0.2 },
+              },
+            }}
+            className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-6"
+          >
             {results.map((tour) => (
-              <div
+              <motion.div
                 key={tour._id}
-                className="p-5 bg-white shadow-md rounded-2xl border border-gray-100 hover:shadow-lg transition-all"
+                variants={{
+                  hidden: { opacity: 0, y: 40 },
+                  show: { opacity: 1, y: 0 },
+                }}
+                transition={{ duration: 0.7, ease: "easeOut" }}
               >
-                <h3 className="text-lg font-bold text-blue-900">
-                  {tour.title}
-                </h3>
-                <p className="text-sm text-gray-600">{tour.location}</p>
-                <p className="text-sm mt-2">
-                  💰 <span className="font-medium">${tour.expenditure}</span>
-                </p>
-                <p className="text-sm">
-                  👥 Max People:{" "}
-                  <span className="font-medium">{tour.groupSize}</span>
-                </p>
-              </div>
+                <TourCard tour={tour} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
 
         {/* only show "No tours found" after search */}
         {!loading && searched && results.length === 0 && (
-          <p className="text-gray-500">
+          <motion.p
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-gray-500 text-center py-8"
+          >
             No tours found. Try different filters.
-          </p>
+          </motion.p>
         )}
       </div>
     </div>

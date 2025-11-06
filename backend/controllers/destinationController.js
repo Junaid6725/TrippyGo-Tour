@@ -109,3 +109,28 @@ export const getAdminDestinations = async (req, res) => {
     });
   }
 };
+
+export const getAllDestinations = async (req, res) => {
+  try {
+    const destinations = await Destination.find();
+
+    if (!destinations || destinations.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No destinations found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      count: destinations.length,
+      destinations,
+    });
+  } catch (error) {
+    console.error("Error fetching destinations:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error while fetching destinations",
+    });
+  }
+};
