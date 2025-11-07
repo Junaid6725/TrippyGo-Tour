@@ -20,7 +20,7 @@ import useDebounce from "../../../hooks/useDebounce";
 import { FaChevronLeft, FaChevronRight, FaSearch } from "react-icons/fa";
 import SubtleSpinner from "../../user/shared/SubtleSpinner";
 import Pagination from "../../user/shared/Pagination";
-import { getAllUsers } from "../../../services/userService";
+import { deleteUser, getAllUsers } from "../../../services/userService";
 
 const UserDetails = () => {
   const [users, setUsers] = useState([]);
@@ -98,9 +98,7 @@ const UserDetails = () => {
     }).then(async (result) => {
       if (result.isConfirmed) {
         try {
-          await axios.delete(`http://localhost:8000/api/delete-user/${id}`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          await deleteUser(id, token);
           toast.success("User successfully deleted!");
           setActionMenuOpen(null);
           fetchUsers(currentPage);
