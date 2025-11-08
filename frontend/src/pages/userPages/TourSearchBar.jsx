@@ -25,11 +25,11 @@ export default function TourSearchBar() {
       setLoading(true);
       setError("");
       setSearched(true);
-      setResults([]); // reset old results
+      setResults([]);
 
       const res = await searchTour(data);
 
-      setResults(res?.tours || []); // save API response
+      setResults(res?.tours || []);
     } catch (err) {
       console.error("Search failed:", err);
       setError(
