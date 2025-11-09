@@ -1,49 +1,33 @@
+import { useForm } from "react-hook-form";
+import { useState } from "react";
+import { motion } from "framer-motion";
 import { FaMapMarkerAlt, FaSearch, FaUsers } from "react-icons/fa";
 import { CiBookmarkMinus, CiBookmarkPlus } from "react-icons/ci";
-import { motion } from "framer-motion";
-import { useForm } from "react-hook-form";
-import axios from "axios";
-import { useState } from "react";
-import TourCard from "./../../components/user/userHomePageComponent/TourCard";
-import api from "../../api/axios";
-import { searchTour } from "../../services/tourService";
+import { useNavigate } from "react-router-dom";
 
 export default function TourSearchBar() {
-  const { register, handleSubmit, reset } = useForm();
-  const [results, setResults] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const { register, handleSubmit } = useForm();
   const [error, setError] = useState("");
-  const [searched, setSearched] = useState(false); // ✅ track if search was made
+  const navigate = useNavigate();
 
-  // Handle search
-  const onSubmit = async (data) => {
+  const onSubmit = (data) => {
     if (!data.location && !data.minPrice && !data.maxPrice && !data.groupSize) {
       setError("Please fill at least one field to search.");
       return;
     }
-    try {
-      setLoading(true);
-      setError("");
-      setSearched(true);
-      setResults([]);
 
-      const res = await searchTour(data);
+    const params = new URLSearchParams();
+    if (data.location) params.append("location", data.location);
+    if (data.minPrice) params.append("minPrice", data.minPrice);
+    if (data.maxPrice) params.append("maxPrice", data.maxPrice);
+    if (data.groupSize) params.append("groupSize", data.groupSize);
 
-      setResults(res?.tours || []);
-    } catch (err) {
-      console.error("Search failed:", err);
-      setError(
-        err.response?.data?.message ||
-          "Something went wrong while searching tours."
-      );
-    } finally {
-      setLoading(false);
-    }
+    setError("");
+    navigate(`/search-results?${params.toString()}`);
   };
 
   return (
     <div className="mt-6 mb-6 px-4">
-      {/* Search Form */}
       <form onSubmit={handleSubmit(onSubmit)}>
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -164,51 +148,11 @@ export default function TourSearchBar() {
         </motion.div>
       </form>
 
-      {/* Search Results */}
-      <div className="max-w-7xl mx-auto mt-6">
-        {loading && <p className="text-blue-600">Loading results...</p>}
-        {error && <p className="text-red-500">{error}</p>}
-
-        {!loading && results.length > 0 && (
-          <motion.div
-            initial="hidden"
-            whileInView="show"
-            viewport={{ once: true }}
-            variants={{
-              hidden: { opacity: 0 },
-              show: {
-                opacity: 1,
-                transition: { staggerChildren: 0.2 },
-              },
-            }}
-            className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mt-6"
-          >
-            {results.map((tour) => (
-              <motion.div
-                key={tour._id}
-                variants={{
-                  hidden: { opacity: 0, y: 40 },
-                  show: { opacity: 1, y: 0 },
-                }}
-                transition={{ duration: 0.7, ease: "easeOut" }}
-              >
-                <TourCard tour={tour} />
-              </motion.div>
-            ))}
-          </motion.div>
-        )}
-
-        {/* only show "No tours found" after search */}
-        {!loading && searched && results.length === 0 && (
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-gray-500 text-center py-8"
-          >
-            No tours found. Try different filters.
-          </motion.p>
-        )}
-      </div>
+      {error && (
+        <p className="text-red-600 text-sm mt-2 text-center font-medium">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

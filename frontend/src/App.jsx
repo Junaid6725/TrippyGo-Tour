@@ -33,6 +33,7 @@ import UserProfile from "./pages/userPages/UserProfile";
 import AdminDestinations from "./pages/adminPages/AdminDestinations";
 import AddDestination from "./components/admin/adminDestinationComponent/AddDestination";
 import DestinationTours from "./components/user/userHomePageComponent/DestinationsTours";
+import SearchResultsPage from "./pages/userPages/SearchResultPage";
 
 function App() {
   const router = createBrowserRouter([
@@ -65,6 +66,10 @@ function App() {
         {
           path: "tours/destination/:destinationId",
           element: <DestinationTours />,
+        },
+        {
+          path: "/search-results",
+          element: <SearchResultsPage />,
         },
 
         {

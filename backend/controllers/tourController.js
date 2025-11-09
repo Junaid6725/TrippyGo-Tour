@@ -179,9 +179,17 @@ export const getTour = async (req, res) => {
   }
 };
 
+
 export const searchTour = async (req, res) => {
   try {
-    const { location, maxPrice, minPrice, groupSize } = req.query;
+    const {
+      location,
+      maxPrice,
+      minPrice,
+      groupSize,
+      page = 1,
+      limit = 6,
+    } = req.query;
 
     if (!location && !minPrice && !maxPrice && !groupSize) {
       return res.status(400).json({ message: "No filters provided." });
@@ -200,8 +208,18 @@ export const searchTour = async (req, res) => {
     if (groupSize) {
       query.groupSize = { $gte: Number(groupSize) };
     }
-    const tours = await Tour.find(query);
-    res.json({ success: true, tours });
+
+    const skip = (page - 1) * limit;
+    const tours = await Tour.find(query).skip(skip).limit(Number(limit));
+
+    const total = await Tour.countDocuments(query);
+
+    res.json({
+      success: true,
+      tours,
+      total,
+      hasMore: skip + tours.length < total,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: "Server Error" });
