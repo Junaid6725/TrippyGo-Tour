@@ -73,9 +73,9 @@ export const getToursByDestination = async (destinationId) => {
 };
 
 // 🟤 Search tours (example: ?keyword=mountain)
+// frontend/services/tourService.js
 export const searchTour = async (filters) => {
   try {
-    // filters = { location, minPrice, maxPrice, groupSize }
     const response = await api.get("/search-tour", { params: filters });
     return response.data;
   } catch (error) {
