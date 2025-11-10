@@ -115,7 +115,7 @@ const Destinations = () => {
               )}
 
               {/* Pagination Controls */}
-              {destinations.length > 0 && (
+              {destinations.length > 0 && totalPages > 1 && (
                 <div className="flex justify-center items-center space-x-4 mt-12">
                   <button
                     onClick={() => handlePageChange(page - 1)}
@@ -143,18 +143,6 @@ const Destinations = () => {
                     }`}
                   >
                     Next
-                  </button>
-                </div>
-              )}
-
-              {/* Load More Button (Alternative to pagination) */}
-              {destinations.length > 0 && page < totalPages && (
-                <div className="text-center mt-8">
-                  <button
-                    onClick={handleLoadMore}
-                    className="bg-white hover:bg-gray-50 text-blue-600 border border-blue-600 px-8 py-3 rounded-lg font-semibold transition-colors duration-300"
-                  >
-                    Load More Destinations
                   </button>
                 </div>
               )}
