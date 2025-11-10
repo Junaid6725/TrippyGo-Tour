@@ -49,7 +49,7 @@ const Booking = () => {
         text: "You Booked the Tour Successfully!",
         button: "green",
       });
-      navigate("/user-dashboard");
+      navigate("/user-dashboard/user-booking");
     } catch (error) {
       Swal.fire({
         icon: "error",

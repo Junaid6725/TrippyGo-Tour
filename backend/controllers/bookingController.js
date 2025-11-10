@@ -34,6 +34,13 @@ export const createBooking = async (req, res) => {
 
     const price = tour.expenditure;
 
+    if (totalMembers > tour.groupSize) {
+      return res.status(400).json({
+        success: false,
+        message: `Maximum group size for this tour is ${tour.groupSize}. Please reduce the number of members.`,
+      });
+    }
+
     if (!fullName || !phoneNumber || !startDate || !totalMembers) {
       return res.status(400).json({
         success: false,

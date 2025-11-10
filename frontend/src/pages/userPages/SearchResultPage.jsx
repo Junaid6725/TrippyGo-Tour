@@ -12,6 +12,7 @@ export default function SearchResultsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  // Extract query params
   const query = new URLSearchParams(location.search);
   const filters = {
     location: query.get("location") || "",
@@ -20,7 +21,7 @@ export default function SearchResultsPage() {
     groupSize: query.get("groupSize") || "",
   };
 
-  // fetch tours
+  // Fetch tours function
   const fetchTours = async (pageNumber = 1, append = false) => {
     try {
       setLoading(true);
@@ -33,19 +34,19 @@ export default function SearchResultsPage() {
       }
       setHasMore(res.hasMore);
     } catch (err) {
-      setError(err.response?.data?.message || "Error fetching tours");
+      setError(err.res?.data?.message || "Error fetching tours");
     } finally {
       setLoading(false);
     }
   };
 
-  // on mount or when filters change
+  // Fetch when filters change
   useEffect(() => {
     setPage(1);
     fetchTours(1);
   }, [location.search]);
 
-  // handle load more
+  // Load more handler
   const handleLoadMore = () => {
     const nextPage = page + 1;
     setPage(nextPage);
@@ -53,27 +54,77 @@ export default function SearchResultsPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6">
-      <h2 className="text-2xl font-semibold mb-6 text-blue-700">
+    <div className="max-w-7xl mx-auto px-4 py-8">
+      <h2 className="text-2xl font-semibold mb-6 text-blue-700 text-center sm:text-left">
         Search Results
       </h2>
 
-      {loading && page === 1 && <p className="text-blue-600">Loading...</p>}
-      {error && <p className="text-red-500">{error}</p>}
+      {/* Active Filters Info */}
+      {(filters.location ||
+        filters.minPrice ||
+        filters.maxPrice ||
+        filters.groupSize) && (
+        <div className="text-gray-600 text-sm mb-6 bg-blue-50 p-3 rounded-xl inline-block">
+          <span>Filters:</span>
+          {filters.location && (
+            <span>
+              {" "}
+              <strong>Location:</strong> {filters.location}
+            </span>
+          )}
+          {filters.minPrice && (
+            <span>
+              {" "}
+              | <strong>Min Price:</strong> ${filters.minPrice}
+            </span>
+          )}
+          {filters.maxPrice && (
+            <span>
+              {" "}
+              | <strong>Max Price:</strong> ${filters.maxPrice}
+            </span>
+          )}
+          {filters.groupSize && (
+            <span>
+              {" "}
+              | <strong>Group Size:</strong> {filters.groupSize}+
+            </span>
+          )}
+        </div>
+      )}
 
+      {/* Error Message */}
+      {error && (
+        <p className="text-red-500 text-center font-medium mb-6">{error}</p>
+      )}
+
+      {/* Skeleton Loader (initial load only) */}
+      {loading && page === 1 && (
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 animate-pulse">
+          {[...Array(6)].map((_, i) => (
+            <div
+              key={i}
+              className="bg-gray-200 h-72 rounded-2xl shadow-md"
+            ></div>
+          ))}
+        </div>
+      )}
+
+      {/* No Results */}
       {!loading && tours.length === 0 && !error && (
-        <p className="text-gray-500 text-center py-8">
-          No tours found. Try different filters.
+        <p className="text-gray-500 text-center py-10">
+          No tours found. Try adjusting your filters.
         </p>
       )}
 
+      {/* Tour Cards */}
       {tours.length > 0 && (
         <motion.div
           initial="hidden"
           animate="show"
           variants={{
             hidden: { opacity: 0 },
-            show: { opacity: 1, transition: { staggerChildren: 0.2 } },
+            show: { opacity: 1, transition: { staggerChildren: 0.15 } },
           }}
           className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8"
         >
@@ -94,14 +145,28 @@ export default function SearchResultsPage() {
 
       {/* Load More Button */}
       {hasMore && (
-        <div className="flex justify-center mt-8">
+        <div className="flex justify-center mt-10">
           <button
             onClick={handleLoadMore}
             disabled={loading}
-            className="bg-blue-600 text-white px-6 py-3 rounded-full hover:bg-blue-700 transition"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full transition duration-300 font-medium disabled:opacity-70"
           >
-            {loading ? "Loading..." : "Load More"}
+            {loading && page > 1 ? (
+              <>
+                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Loading more...</span>
+              </>
+            ) : (
+              "Load More"
+            )}
           </button>
+        </div>
+      )}
+
+      {/* Subtle Spinner (only when fetching additional pages) */}
+      {loading && page > 1 && !hasMore && (
+        <div className="flex justify-center py-6">
+          <div className="w-6 h-6 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
         </div>
       )}
     </div>
