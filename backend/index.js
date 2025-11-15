@@ -20,7 +20,7 @@ const PORT = process.env.PORT;
 await connectDB();
 
 const corsOptions = {
-  origin: "http://localhost:5173",
+  origin: "https://trippy-go-tour.vercel.app/",
   optionsSuccessStatus: 200,
   credentials: true,
 };
@@ -41,6 +41,11 @@ app.use("/api", profileRoutes);
 app.use("/api", destinationRoutes);
 app.use("/api", reviewRoutes);
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
-});
+// app.listen(PORT, () => {
+//   console.log(`Server is running on http://localhost:${PORT}`);
+// });
+
+import serverless from "serverless-http";
+export const handler = serverless(app);
+
+export default app;
