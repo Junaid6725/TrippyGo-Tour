@@ -22,7 +22,7 @@ import AdminTour from "./pages/adminPages/AdminTour";
 import AdminBookings from "./pages/adminPages/AdminBookings";
 import EditTour from "./components/admin/adminTourComponent.jsx/EditTour";
 import Tour from "./pages/userPages/Tour";
-import ProtectedRoutes from "./components/protectedRoutes/protectedRoutes";
+import ProtectedRoutes from "./components/protectedRoutes/ProtectedRoutes";
 import UserDashboard from "./pages/userPages/UserDashboard";
 import AddTour from "./components/admin/adminTourComponent.jsx/AddTour";
 import AllTours from "./pages/userPages/AllTours";
