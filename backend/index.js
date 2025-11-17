@@ -48,7 +48,7 @@ app.use("/api", reviewRoutes);
 //   console.log(`Server is running on http://localhost:${PORT}`);
 // });
 
-import serverless from "serverless-http";
-export const handler = serverless(app);
+// import serverless from "serverless-http";
+// export const handler = serverless(app);
 
 export default app;
