@@ -32,7 +32,7 @@ app.use(express.urlencoded({ extended: true }));
 
 autoCompleteBookings();
 
-app.use("/", authRoutes);
+app.use("/api", authRoutes);
 app.use("/api", adminRoutes);
 app.use("/api", tourRoutes);
 app.use("/api", contactRoutes);
