@@ -20,8 +20,7 @@ const app = express();
 await connectDB();
 
 const corsOptions = {
-  origin:
-    "https://trippy-go-tour-git-main-muhammad-junaids-projects-36a41707.vercel.app",
+  origin: "https://trippy-go-tour.vercel.app",
   optionsSuccessStatus: 200,
   credentials: true,
 };
