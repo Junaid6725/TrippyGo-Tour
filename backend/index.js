@@ -26,13 +26,13 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+// app.options("*", cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 autoCompleteBookings();
 
-app.use("/api", authRoutes);
+app.use("/", authRoutes);
 app.use("/api", adminRoutes);
 app.use("/api", tourRoutes);
 app.use("/api", contactRoutes);
@@ -41,6 +41,8 @@ app.use("/api", userRoutes);
 app.use("/api", profileRoutes);
 app.use("/api", destinationRoutes);
 app.use("/api", reviewRoutes);
+
+
 
 // app.listen(PORT, () => {
 //   console.log(`Server is running on http://localhost:${PORT}`);
