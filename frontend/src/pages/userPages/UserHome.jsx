@@ -34,7 +34,7 @@ const UserHome = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
+     
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-gray-900">User Dashboard</h1>
@@ -47,7 +47,7 @@ const UserHome = () => {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Profile Header */}
+       
         <div className="bg-white rounded-xl shadow-md overflow-hidden mb-8">
           <div
             className="relative h-40 bg-cover bg-center"
@@ -87,7 +87,7 @@ const UserHome = () => {
           </div>
         </div>
 
-        {/* Stats */}
+    
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
           {stats.map((stat, index) => (
             <div
@@ -103,9 +103,9 @@ const UserHome = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Main Content */}
+     
           <div className="lg:col-span-2">
-            {/* Tabs */}
+           
             <div className="bg-white rounded-xl shadow-md overflow-hidden mb-6">
               <div className="border-b border-gray-200">
                 <nav className="flex -mb-px">
@@ -127,7 +127,7 @@ const UserHome = () => {
                 </nav>
               </div>
 
-              {/* Tab Content */}
+            
               <div className="p-6">
                 {activeTab === "profile" && (
                   <div>
@@ -187,9 +187,9 @@ const UserHome = () => {
             </div>
           </div>
 
-          {/* Sidebar */}
+     
           <div>
-            {/* Upcoming Bookings */}
+           
             <div className="bg-white rounded-xl shadow-md p-6 mb-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">
                 Upcoming Bookings
@@ -220,7 +220,7 @@ const UserHome = () => {
               </div>
             </div>
 
-            {/* Connected Accounts */}
+           
             <div className="bg-white rounded-xl shadow-md p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">
                 Connected Accounts

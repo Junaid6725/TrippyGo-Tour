@@ -36,7 +36,7 @@ export default function TourSearchBar() {
           viewport={{ once: true }}
           className="max-w-7xl mx-auto bg-white shadow-xl rounded-3xl p-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-5 items-end border border-blue-100"
         >
-          {/* Where */}
+    
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -59,7 +59,7 @@ export default function TourSearchBar() {
             </div>
           </motion.div>
 
-          {/* Min Price */}
+          
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -82,7 +82,7 @@ export default function TourSearchBar() {
             </div>
           </motion.div>
 
-          {/* Max Price */}
+      
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -105,7 +105,7 @@ export default function TourSearchBar() {
             </div>
           </motion.div>
 
-          {/* Max People */}
+     
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             whileInView={{ opacity: 1, x: 0 }}
@@ -128,7 +128,7 @@ export default function TourSearchBar() {
             </div>
           </motion.div>
 
-          {/* Search Button */}
+       
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}

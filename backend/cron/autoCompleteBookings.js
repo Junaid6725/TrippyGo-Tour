@@ -18,11 +18,11 @@ export const autoCompleteBookings = () => {
       );
       if (bookingsToUpdate.modifiedCount > 0) {
         console.log(
-          `✅ Auto-completed ${bookingsToUpdate.modifiedCount} bookings.`
+          ` Auto-completed ${bookingsToUpdate.modifiedCount} bookings.`
         );
       }
     } catch (error) {
-      console.error("❌ Auto-complete cron error:", error);
+      console.error(" Auto-complete cron error:", error);
     }
   });
 };

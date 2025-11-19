@@ -1,7 +1,6 @@
 // src/reduxToolkit/slices/authSlices/authSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
-// Load from localStorage (if available)
 const token = localStorage.getItem("token");
 const role = localStorage.getItem("role");
 

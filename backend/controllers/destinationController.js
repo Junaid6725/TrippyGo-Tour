@@ -71,27 +71,27 @@ export const deleteDestination = async (req, res) => {
 
 export const getAdminDestinations = async (req, res) => {
   try {
-    // 🔹 Pagination
+   
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 4;
     const skip = (page - 1) * limit;
 
-    // 🔹 Search
+   
     const search = req.query.search || "";
     const searchQuery = search
       ? { name: { $regex: search, $options: "i" } } // assumes 'name' is your field
       : {};
 
-    // 🔹 Count total destinations
+    
     const total = await Destination.countDocuments(searchQuery);
 
-    // 🔹 Fetch destinations
+    
     const allDestinations = await Destination.find(searchQuery)
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
-    // 🔹 Send response
+  
     return res.status(200).json({
       success: true,
       message: "Destinations fetched successfully!",

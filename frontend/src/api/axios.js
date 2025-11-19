@@ -50,8 +50,6 @@ api.interceptors.response.use(
       console.warn("Forbidden: you don't have permission for this action");
     }
 
-    // if (status === 500) { ... }
-
     return Promise.reject(error);
   }
 );

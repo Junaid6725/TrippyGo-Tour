@@ -12,7 +12,7 @@ export default function SearchResultsPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  // Extract query params
+
   const query = new URLSearchParams(location.search);
   const filters = {
     location: query.get("location") || "",
@@ -21,7 +21,6 @@ export default function SearchResultsPage() {
     groupSize: query.get("groupSize") || "",
   };
 
-  // Fetch tours function
   const fetchTours = async (pageNumber = 1, append = false) => {
     try {
       setLoading(true);
@@ -40,13 +39,13 @@ export default function SearchResultsPage() {
     }
   };
 
-  // Fetch when filters change
+ 
   useEffect(() => {
     setPage(1);
     fetchTours(1);
   }, [location.search]);
 
-  // Load more handler
+ 
   const handleLoadMore = () => {
     const nextPage = page + 1;
     setPage(nextPage);
@@ -59,7 +58,7 @@ export default function SearchResultsPage() {
         Search Results
       </h2>
 
-      {/* Active Filters Info */}
+     
       {(filters.location ||
         filters.minPrice ||
         filters.maxPrice ||
@@ -93,12 +92,12 @@ export default function SearchResultsPage() {
         </div>
       )}
 
-      {/* Error Message */}
+    
       {error && (
         <p className="text-red-500 text-center font-medium mb-6">{error}</p>
       )}
 
-      {/* Skeleton Loader (initial load only) */}
+   
       {loading && page === 1 && (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 animate-pulse">
           {[...Array(6)].map((_, i) => (
@@ -110,14 +109,14 @@ export default function SearchResultsPage() {
         </div>
       )}
 
-      {/* No Results */}
+    
       {!loading && tours.length === 0 && !error && (
         <p className="text-gray-500 text-center py-10">
           No tours found. Try adjusting your filters.
         </p>
       )}
 
-      {/* Tour Cards */}
+     
       {tours.length > 0 && (
         <motion.div
           initial="hidden"
@@ -143,7 +142,7 @@ export default function SearchResultsPage() {
         </motion.div>
       )}
 
-      {/* Load More Button */}
+    
       {hasMore && (
         <div className="flex justify-center mt-10">
           <button
@@ -163,7 +162,7 @@ export default function SearchResultsPage() {
         </div>
       )}
 
-      {/* Subtle Spinner (only when fetching additional pages) */}
+    
       {loading && page > 1 && !hasMore && (
         <div className="flex justify-center py-6">
           <div className="w-6 h-6 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>

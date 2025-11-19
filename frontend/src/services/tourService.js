@@ -1,10 +1,7 @@
-// src/services/tourService.js
 import api from "../api/axios";
 
-// 🟢 Create a new tour
 export const createTour = async (formData) => {
   try {
-    // formData should include tourImg (File)
     const response = await api.post("/create-tour", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
@@ -15,7 +12,6 @@ export const createTour = async (formData) => {
   }
 };
 
-// 🟡 Update existing tour
 export const updateTour = async (id, formData) => {
   try {
     const response = await api.put(`/update-tour/${id}`, formData, {
@@ -28,7 +24,6 @@ export const updateTour = async (id, formData) => {
   }
 };
 
-// 🔴 Delete a tour
 export const deleteTour = async (id) => {
   try {
     const response = await api.delete(`/delete-tour/${id}`);
@@ -39,7 +34,6 @@ export const deleteTour = async (id) => {
   }
 };
 
-// 🔵 Get all tours (optionally paginated)
 export const getAllTours = async (page = 1, limit = 10) => {
   try {
     const response = await api.get(`/get-tours?page=${page}&limit=${limit}`);
@@ -50,18 +44,16 @@ export const getAllTours = async (page = 1, limit = 10) => {
   }
 };
 
-// 🟣 Get single tour by ID
 export const getTourByIdService = async (id) => {
   try {
     const response = await api.get(`/get-tour/${id}`);
-    return response.data; // { success, singleTour }
+    return response.data;
   } catch (error) {
     console.error("Error fetching tour:", error);
     throw error;
   }
 };
 
-// 🟠 Get tours by destination ID
 export const getToursByDestination = async (destinationId) => {
   try {
     const response = await api.get(`/tours/destination/${destinationId}`);
@@ -72,8 +64,6 @@ export const getToursByDestination = async (destinationId) => {
   }
 };
 
-// 🟤 Search tours (example: ?keyword=mountain)
-// frontend/services/tourService.js
 export const searchTour = async (filters) => {
   try {
     const response = await api.get("/search-tour", { params: filters });
