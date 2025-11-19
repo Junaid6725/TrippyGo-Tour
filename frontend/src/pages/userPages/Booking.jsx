@@ -63,7 +63,6 @@ const Booking = () => {
     <>
       <section className="max-w-[1200px] mx-auto px-4 py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-          {/* Left Column - Tour Image and Details */}
           <div className="w-full">
             <img
               src={tour?.tourImg}
@@ -106,7 +105,6 @@ const Booking = () => {
             />
           </div>
 
-          {/* Right Column - Booking Form */}
           <div className="bg-white shadow rounded-xl p-6">
             <h3 className="text-3xl font-semibold text-center">
               Book Your Tour!

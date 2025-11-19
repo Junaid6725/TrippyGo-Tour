@@ -1,6 +1,5 @@
-import api from "../api/axios"; // your axios instance
+import api from "../api/axios";
 
-// Add a review to a specific tour
 export const addTourReview = async (tourId, reviewData, token) => {
   try {
     const response = await api.post(
@@ -10,18 +9,17 @@ export const addTourReview = async (tourId, reviewData, token) => {
         headers: { Authorization: `Bearer ${token}` },
       }
     );
-    return response.data; // expected { success, review }
+    return response.data;
   } catch (error) {
     console.error("Error adding review:", error);
     throw error;
   }
 };
 
-// Get all reviews for a specific tour
 export const getTourReviews = async (tourId) => {
   try {
     const response = await api.get(`/tours/${tourId}/reviews`);
-    return response.data; // expected { success, reviews }
+    return response.data;
   } catch (error) {
     console.error("Error fetching reviews:", error);
     throw error;

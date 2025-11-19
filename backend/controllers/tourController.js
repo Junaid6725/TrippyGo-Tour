@@ -230,7 +230,7 @@ export const getToursByDestination = async (req, res) => {
   try {
     const { destinationId } = req.params;
 
-    // Basic validation
+    
     if (!destinationId) {
       return res.status(400).json({
         success: false,
@@ -238,7 +238,7 @@ export const getToursByDestination = async (req, res) => {
       });
     }
 
-    // Fetch tours with destination populated
+   
     const tours = await Tour.find({ destinationId })
       .populate("destinationId", "name image")
       .sort({ createdAt: -1 });

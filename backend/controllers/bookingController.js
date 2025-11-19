@@ -102,17 +102,14 @@ export const createBooking = async (req, res) => {
 
 export const getBookings = async (req, res) => {
   try {
-    // --- pagination params (sanitized) ---
     const page = Math.max(1, parseInt(req.query.page) || 1);
     const limit = Math.max(1, parseInt(req.query.limit) || 5);
     const skip = (page - 1) * limit;
     const search = (req.query.search || "").trim();
 
-    // --- build filter (handle search across related models) ---
     let filter = {};
 
     if (search) {
-      // Find matching users and tours first (case-insensitive)
       const [matchedUsers, matchedTours] = await Promise.all([
         User.find({
           $or: [
@@ -131,7 +128,6 @@ export const getBookings = async (req, res) => {
       const userIds = matchedUsers.map((u) => u._id);
       const tourIds = matchedTours.map((t) => t._id);
 
-      // If neither users nor tours matched, return empty result quickly
       if (userIds.length === 0 && tourIds.length === 0) {
         return res.status(200).json({
           success: true,
@@ -158,7 +154,6 @@ export const getBookings = async (req, res) => {
       };
     }
 
-    // --- get total bookings and pending bookings ---
     const [total, pending, confirmed, rejected, completed, expired, cancelled] =
       await Promise.all([
         Booking.countDocuments(filter),
@@ -170,7 +165,6 @@ export const getBookings = async (req, res) => {
         Booking.countDocuments({ ...filter, bookingStatus: "cancelled" }),
       ]);
 
-    // --- fetch bookings (sorted, populated, paginated) ---
     const bookings = await Booking.find(filter)
       .populate("userId", "fullName email")
       .populate("tourId", "title duration expenditure")
@@ -178,7 +172,6 @@ export const getBookings = async (req, res) => {
       .skip(skip)
       .limit(limit);
 
-    // --- safe response even when empty ---
     return res.status(200).json({
       success: true,
       total,
@@ -348,85 +341,3 @@ export const cancleBooking = async (req, res) => {
     });
   }
 };
-
-// export const getBookings = async (req, res) => {
-//   try {
-//     // --- pagination params (sanitized) ---
-//     const page = Math.max(1, parseInt(req.query.page) || 1);
-//     const limit = Math.max(1, parseInt(req.query.limit) || 5);
-//     const skip = (page - 1) * limit;
-//     const search = (req.query.search || "").trim();
-
-//     // --- build filter (handle search across related models) ---
-//     let filter = {};
-
-//     if (search) {
-//       // Find matching users and tours first (case-insensitive)
-//       const [matchedUsers, matchedTours] = await Promise.all([
-//         User.find({
-//           $or: [
-//             { fullName: { $regex: search, $options: "i" } },
-//             { email: { $regex: search, $options: "i" } },
-//           ],
-//         }).select("_id"),
-//         Tour.find({
-//           $or: [
-//             { title: { $regex: search, $options: "i" } },
-//             { location: { $regex: search, $options: "i" } },
-//           ],
-//         }).select("_id"),
-//       ]);
-
-//       const userIds = matchedUsers.map((u) => u._id);
-//       const tourIds = matchedTours.map((t) => t._id);
-
-//       // If neither users nor tours matched, return empty result quickly
-//       if (userIds.length === 0 && tourIds.length === 0) {
-//         return res.status(200).json({
-//           success: true,
-//           total: 0,
-//           page,
-//           limit,
-//           totalPages: 0,
-//           bookings: [],
-//           message: "No bookings found",
-//         });
-//       }
-
-//       filter = {
-//         $or: [
-//           ...(userIds.length ? [{ userId: { $in: userIds } }] : []),
-//           ...(tourIds.length ? [{ tourId: { $in: tourIds } }] : []),
-//         ],
-//       };
-//     }
-
-//     // --- get total with same filter ---
-//     const total = await Booking.countDocuments(filter);
-
-//     // --- fetch bookings (sorted, populated, paginated) ---
-//     const bookings = await Booking.find(filter)
-//       .populate("userId", "fullName email")
-//       .populate("tourId", "title duration expenditure")
-//       .sort({ createdAt: -1 })
-//       .skip(skip)
-//       .limit(limit);
-
-//     const pending = (await bookings.bookingStatus) === "pending";
-//     // --- safe response even when empty ---
-//     return res.status(200).json({
-//       success: true,
-//       total,
-//       page,
-//       limit,
-//       totalPages: Math.ceil(total / limit) || 0,
-//       bookings,
-//     });
-//   } catch (error) {
-//     console.error("getBookings error:", error);
-//     return res.status(500).json({
-//       success: false,
-//       message: "Server Error: Failed to fetch bookings",
-//     });
-//   }
-// };

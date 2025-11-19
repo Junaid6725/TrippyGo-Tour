@@ -12,7 +12,7 @@ const AllTours = () => {
 
   // Pagination states
   const [page, setPage] = useState(1);
-  const limit = 8; // har page pe kitne tours dikhane hain
+  const limit = 8;
   const [totalPages, setTotalPages] = useState(1);
 
   const fetchTours = async () => {
@@ -54,7 +54,6 @@ const AllTours = () => {
           </div>
         )}
 
-        {/* Pagination Controls */}
         {totalPages > 1 && (
           <div className="flex justify-center mt-8">
             <div className="flex items-center space-x-2">

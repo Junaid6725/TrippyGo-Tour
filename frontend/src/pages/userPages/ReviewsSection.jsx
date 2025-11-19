@@ -25,7 +25,7 @@ const ReviewsSection = ({ tourId, token, restrictAddReview = false }) => {
     formState: { errors },
   } = useForm();
 
-  // ✅ Fetch Reviews
+
   const getReviews = async () => {
     setLoading(true);
     try {
@@ -38,7 +38,7 @@ const ReviewsSection = ({ tourId, token, restrictAddReview = false }) => {
     }
   };
 
-  // ✅ Submit Review
+
   const handleAddReview = async (data) => {
     setSubmitting(true);
     try {
@@ -66,7 +66,6 @@ const ReviewsSection = ({ tourId, token, restrictAddReview = false }) => {
     }
   };
 
-  // ✅ Format date
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -78,12 +77,12 @@ const ReviewsSection = ({ tourId, token, restrictAddReview = false }) => {
     });
   };
 
-  // ✅ Load reviews when component mounts
+  
   useEffect(() => {
     getReviews();
   }, [tourId]);
 
-  // ⭐ Star ratings
+ 
   const renderStars = (rating) => (
     <div className="flex items-center gap-1">
       {[1, 2, 3, 4, 5].map((s) => (
@@ -103,7 +102,7 @@ const ReviewsSection = ({ tourId, token, restrictAddReview = false }) => {
 
   return (
     <div className="bg-white shadow-lg mt-4 sm:mt-6 rounded-lg sm:rounded-xl p-4 sm:p-6 border border-gray-200">
-      {/* Header Section */}
+      
       <div className="flex flex-col xs:flex-row justify-between items-start xs:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div className="flex-1 min-w-0">
           <h3 className="text-xl sm:text-2xl font-bold text-gray-800">
@@ -134,7 +133,7 @@ const ReviewsSection = ({ tourId, token, restrictAddReview = false }) => {
         )}
       </div>
 
-      {/* Review Form */}
+     
       {showForm && (
         <form
           onSubmit={handleSubmit(handleAddReview)}
@@ -220,7 +219,7 @@ const ReviewsSection = ({ tourId, token, restrictAddReview = false }) => {
         </form>
       )}
 
-      {/* Reviews List */}
+    
       {loading ? (
         <div className="text-center py-6 sm:py-8">
           <div className="inline-block animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-600"></div>

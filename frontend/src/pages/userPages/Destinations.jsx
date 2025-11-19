@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import CommonHeroSection from "../../components/user/shared/CommonHeroSection";
 import DestinationCard from "../../components/user/userHomePageComponent/DestinationsCard";
 import { Link } from "react-router-dom";
@@ -10,7 +9,7 @@ const Destinations = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const limit = 6; // Items per page
+  const limit = 6;
 
   const fetchDestinations = async () => {
     try {
@@ -47,7 +46,6 @@ const Destinations = () => {
     }
   };
 
-  // Loading skeleton component
   const LoadingSkeleton = () => (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {[...Array(6)].map((_, index) => (
@@ -77,10 +75,8 @@ const Destinations = () => {
     <>
       <CommonHeroSection title="Destinations" />
 
-      {/* Main Content */}
       <div className="min-h-screen  py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {/* Header Section */}
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
               Explore Amazing Destinations
@@ -91,10 +87,8 @@ const Destinations = () => {
             </p>
           </div>
 
-          {/* Loading State */}
           {loading && <LoadingSkeleton />}
 
-          {/* Destinations Grid */}
           {!loading && (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -105,7 +99,6 @@ const Destinations = () => {
                 ))}
               </div>
 
-              {/* No Results Message */}
               {destinations.length === 0 && !loading && (
                 <div className="text-center py-12">
                   <div className="text-gray-500 text-lg mb-4">
@@ -114,7 +107,6 @@ const Destinations = () => {
                 </div>
               )}
 
-              {/* Pagination Controls */}
               {destinations.length > 0 && totalPages > 1 && (
                 <div className="flex justify-center items-center space-x-4 mt-12">
                   <button

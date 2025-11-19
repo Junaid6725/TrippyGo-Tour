@@ -50,7 +50,7 @@ const UserProfile = () => {
     return "?";
   };
 
-  // Handle image preview
+
   useEffect(() => {
     if (profileImage && profileImage[0]) {
       const file = profileImage[0];
@@ -73,18 +73,18 @@ const UserProfile = () => {
     return colors[index];
   };
 
-  // Fetch profile from backend
+  
   const fetchProfile = async () => {
     try {
       const res = await getProfileService(token);
 
       if (res?.success) {
         if (res?.profile) {
-          // Profile exists - dono data set karo
+        
           setProfile(res?.profile);
           setUserData(res?.user);
 
-          // Form ko reset karo with existing data
+        
           reset({
             about: res?.profile.about || "",
             location: res?.profile.location || "",
@@ -94,11 +94,11 @@ const UserProfile = () => {
             phoneNumber: res?.user?.phoneNumber || "",
           });
         } else {
-          // Profile doesn't exist, but user data is available
+      
           setProfile(null);
           setUserData(res?.user);
 
-          // Form ko reset karo with user data only
+          
           reset({
             about: "",
             location: "",
@@ -123,11 +123,11 @@ const UserProfile = () => {
     setLoading(false);
   };
 
-  // Jab form show ho tab automatically data fill karo
+  
   useEffect(() => {
     if (showForm) {
       if (profile && userData) {
-        // Existing profile hai
+       
         reset({
           about: profile.about || "",
           location: profile.location || "",
@@ -137,7 +137,7 @@ const UserProfile = () => {
           phoneNumber: userData.phoneNumber || "",
         });
       } else if (userData) {
-        // Profile nahi hai, lekin user data hai
+     
         reset({
           about: "",
           location: "",
@@ -150,7 +150,7 @@ const UserProfile = () => {
     }
   }, [showForm, profile, userData, reset]);
 
-  // Create or update profile
+ 
   const onSubmit = async (data) => {
     try {
       const formData = new FormData();
@@ -187,7 +187,7 @@ const UserProfile = () => {
     }
   };
 
-  // Change password function
+  
   const handleChangePassword = async (passwordData) => {
     try {
       const res = await changePasswordService(passwordData, token);
@@ -236,7 +236,7 @@ const UserProfile = () => {
     <div className="min-h-screen py-4 sm:py-6 lg:py-8 px-3 xs:px-4 sm:px-6 lg:px-8">
       <div className="max-w-6xl mx-auto">
         <AnimatePresence mode="wait">
-          {/* No profile yet */}
+        
           {!profile && !showForm && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -279,7 +279,7 @@ const UserProfile = () => {
                 </motion.button>
               </div>
 
-              {/* Decorative elements */}
+             
               <div className="flex justify-center gap-3 xs:gap-4 sm:gap-6 pt-6 sm:pt-8 opacity-70">
                 {[FiMapPin, FiGlobe, FiAward, FiStar].map((Icon, index) => (
                   <motion.div
@@ -299,7 +299,7 @@ const UserProfile = () => {
             </motion.div>
           )}
 
-          {/* Create / Update form */}
+         
           {showForm && (
             <motion.form
               initial={{ opacity: 0, scale: 0.95 }}
@@ -317,7 +317,7 @@ const UserProfile = () => {
                 </p>
               </div>
 
-              {/* Profile Image Upload */}
+              
               <div className="flex flex-col items-center">
                 <motion.div
                   className="relative"
@@ -348,9 +348,9 @@ const UserProfile = () => {
               </div>
 
               <div className="grid lg:grid-cols-2 gap-3 xs:gap-4 sm:gap-6 lg:gap-8">
-                {/* Left Column - 4 Fields */}
+              
                 <div className="space-y-3 xs:space-y-4 sm:space-y-6">
-                  {/* Full Name Field */}
+                 
                   <motion.div
                     className="bg-white/80 backdrop-blur rounded-lg xs:rounded-xl sm:rounded-2xl p-3 xs:p-4 sm:p-6 border border-blue-200 shadow-lg"
                     whileHover={{ y: -2, transition: { duration: 0.2 } }}
@@ -367,7 +367,7 @@ const UserProfile = () => {
                     />
                   </motion.div>
 
-                  {/* Email Field */}
+               
                   <motion.div
                     className="bg-white/80 backdrop-blur rounded-lg xs:rounded-xl sm:rounded-2xl p-3 xs:p-4 sm:p-6 border border-blue-200 shadow-lg"
                     whileHover={{ y: -2, transition: { duration: 0.2 } }}
@@ -385,7 +385,7 @@ const UserProfile = () => {
                     />
                   </motion.div>
 
-                  {/* Phone Number Field */}
+              
                   <motion.div
                     className="bg-white/80 backdrop-blur rounded-lg xs:rounded-xl sm:rounded-2xl p-3 xs:p-4 sm:p-6 border border-blue-200 shadow-lg"
                     whileHover={{ y: -2, transition: { duration: 0.2 } }}
@@ -403,7 +403,7 @@ const UserProfile = () => {
                     />
                   </motion.div>
 
-                  {/* Location Field */}
+                  
                   <motion.div
                     className="bg-white/80 backdrop-blur rounded-lg xs:rounded-xl sm:rounded-2xl p-3 xs:p-4 sm:p-6 border border-blue-200 shadow-lg"
                     whileHover={{ y: -2, transition: { duration: 0.2 } }}
@@ -420,9 +420,9 @@ const UserProfile = () => {
                   </motion.div>
                 </div>
 
-                {/* Right Column - 2 Fields */}
+          
                 <div className="space-y-3 xs:space-y-4 sm:space-y-6">
-                  {/* Traveler Type Field */}
+                
                   <motion.div
                     className="bg-white/80 backdrop-blur rounded-lg xs:rounded-xl sm:rounded-2xl p-3 xs:p-4 sm:p-6 border border-blue-200 shadow-lg"
                     whileHover={{ y: -2, transition: { duration: 0.2 } }}
@@ -453,7 +453,7 @@ const UserProfile = () => {
                     </select>
                   </motion.div>
 
-                  {/* Travel Story Field */}
+              
                   <motion.div
                     className="bg-white/80 backdrop-blur rounded-lg xs:rounded-xl sm:rounded-2xl p-3 xs:p-4 sm:p-6 border border-blue-200 shadow-lg"
                     whileHover={{ y: -2, transition: { duration: 0.2 } }}
@@ -473,7 +473,7 @@ const UserProfile = () => {
               </div>
 
               <div className="flex flex-col md:flex-row gap-3 sm:gap-4 justify-center items-stretch pt-3 sm:pt-4">
-                {/* Primary Button */}
+           
                 <motion.button
                   type="submit"
                   whileHover={{
@@ -484,12 +484,12 @@ const UserProfile = () => {
                   whileTap={{ scale: 0.98, y: 0 }}
                   className="relative bg-blue-600 text-white px-6 sm:px-8 py-3 sm:py-4 rounded-xl sm:rounded-2xl font-semibold text-base sm:text-lg transition-all duration-300 shadow-2xl shadow-blue-500/30 hover:shadow-blue-500/50 flex items-center justify-center group overflow-hidden flex-1 min-w-0"
                 >
-                  {/* Animated background shine */}
+                 
                   <div className="absolute inset-0 overflow-hidden rounded-xl sm:rounded-2xl">
                     <div className="absolute -inset-full top-0 bg-gradient-to-r from-transparent via-white/20 to-transparent transform skew-x-12 group-hover:animate-shine group-hover:duration-1000" />
                   </div>
 
-                  {/* Button content */}
+                
                   <span className="relative z-10 flex items-center">
                     {profile ? (
                       <>
@@ -528,7 +528,7 @@ const UserProfile = () => {
             </motion.form>
           )}
 
-          {/* Profile exists */}
+         
           {profile && !showForm && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -536,7 +536,7 @@ const UserProfile = () => {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-4 xs:space-y-6 sm:space-y-8"
             >
-              {/* Header Section */}
+           
               <div className="bg-gradient-to-r from-blue-500 via-blue-600 to-blue-500 rounded-xl xs:rounded-2xl sm:rounded-3xl p-3 xs:p-4 sm:p-6 lg:p-8 shadow-xl sm:shadow-2xl shadow-blue-500/30 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-blue-900/20"></div>
                 <div className="relative flex flex-col lg:flex-row items-center lg:items-start gap-3 xs:gap-4 sm:gap-6 lg:gap-8">
@@ -620,7 +620,7 @@ const UserProfile = () => {
                   </div>
                 </div>
 
-                {/* Change Password Button */}
+               
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -631,14 +631,14 @@ const UserProfile = () => {
                   Change Password
                 </motion.button>
 
-                {/* Decorative elements */}
+            
                 <div className="absolute top-0 right-0 w-16 h-16 xs:w-20 xs:h-20 sm:w-24 sm:h-24 lg:w-32 lg:h-32 bg-white/10 rounded-full -translate-y-6 xs:-translate-y-8 sm:-translate-y-10 lg:-translate-y-16 translate-x-6 xs:translate-x-8 sm:translate-x-10 lg:translate-x-16"></div>
                 <div className="absolute bottom-0 left-0 w-12 h-12 xs:w-16 xs:h-16 sm:w-20 sm:h-20 lg:w-24 lg:h-24 bg-white/10 rounded-full translate-y-4 xs:translate-y-6 sm:translate-y-8 lg:translate-y-12 -translate-x-4 xs:-translate-x-6 sm:-translate-x-8 lg:-translate-x-12"></div>
               </div>
 
-              {/* Content Section */}
+          
               <div className="grid lg:grid-cols-3 gap-3 xs:gap-4 sm:gap-6 lg:gap-8">
-                {/* About Section */}
+              
                 <div className="lg:col-span-2">
                   <motion.div
                     className="bg-white/90 backdrop-blur-sm p-3 xs:p-4 sm:p-6 lg:p-8 rounded-xl xs:rounded-2xl sm:rounded-3xl border border-blue-100 shadow-xl sm:shadow-2xl shadow-blue-500/10"
@@ -656,7 +656,7 @@ const UserProfile = () => {
                   </motion.div>
                 </div>
 
-                {/* Stats Sidebar */}
+               
                 <motion.div
                   className="space-y-3 xs:space-y-4 sm:space-y-6"
                   initial={{ opacity: 0, x: 20 }}
@@ -678,7 +678,7 @@ const UserProfile = () => {
           )}
         </AnimatePresence>
 
-        {/* Change Password Modal */}
+       
         <AnimatePresence>
           {showChangePassword && (
             <motion.div
