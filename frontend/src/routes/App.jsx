@@ -34,7 +34,6 @@ import AdminDestinations from "../pages/adminPages/AdminDestinations";
 import AddDestination from "../components/admin/adminDestinationComponent/AddDestination";
 import DestinationTours from "../components/user/userHomePageComponent/DestinationsTours";
 import SearchResultsPage from "../pages/userPages/SearchResultPage";
-import ScrollToTop from "./../components/common/ScrollToTop";
 
 function App() {
   const router = createBrowserRouter([
