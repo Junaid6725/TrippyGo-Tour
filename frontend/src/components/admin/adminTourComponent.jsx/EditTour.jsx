@@ -4,7 +4,6 @@ import { useNavigate, useParams } from "react-router-dom";
 import StepOne from "./multiStepForm/StepOne";
 import StepTwo from "./multiStepForm/StepTwo";
 import StepThree from "./multiStepForm/StepThree";
-import axios from "axios";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { getAllDestinations } from "../../../services/destinationService";
@@ -47,7 +46,7 @@ const EditTour = () => {
       const res = await getTourByIdService(id);
 
       if (res?.singleTour) {
-        const tourData = response.data.singleTour;
+        const tourData = res.data.singleTour;
 
         // Convert arrays into comma-separated strings for form inputs
         if (Array.isArray(tourData.included)) {
