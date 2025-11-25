@@ -40,15 +40,14 @@ const EditTour = () => {
     if (id) getTourById();
   }, [id]);
 
-  // ✅ Fetch tour by ID
+ 
   const getTourById = async () => {
     try {
       const res = await getTourByIdService(id);
 
       if (res?.singleTour) {
-        const tourData = res.data.singleTour;
+        const tourData = res.singleTour;
 
-        // Convert arrays into comma-separated strings for form inputs
         if (Array.isArray(tourData.included)) {
           tourData.included = tourData.included.join(", ");
         }
@@ -68,7 +67,7 @@ const EditTour = () => {
     }
   };
 
-  // ✅ Submit updated tour
+ 
   const submitData = async (data) => {
     const formData = new FormData();
     try {
